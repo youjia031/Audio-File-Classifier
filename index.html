@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>音頻事件分類器 - 聲音分離與標記</title>
+    <title>超極致靈敏音頻事件檢測器 v2.0</title>
     <style>
         * {
             margin: 0;
@@ -13,48 +13,119 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a0a1a 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
+            color: #e0e0e0;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            background: white;
+            background: rgba(255,255,255,0.03);
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 30px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
         }
         
         h1 {
-            color: #333;
             font-size: 28px;
-            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff, #7b2ffc, #ff4081);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
+        .current-file-display {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
             font-size: 14px;
+            color: #00d4ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 400px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        
+        .current-file-display .file-icon {
+            font-size: 20px;
+        }
+        
+        .current-file-display .file-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-manager {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .file-tab {
+            background: rgba(255,255,255,0.05);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: all 0.3s;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .file-tab:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .file-tab.active {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+        
+        .file-tab .event-badge {
+            background: #ff4081;
+            color: white;
+            border-radius: 50%;
+            padding: 0 6px;
+            font-size: 10px;
+            margin-left: 5px;
         }
         
         .upload-section {
-            border: 2px dashed #667eea;
+            border: 2px dashed rgba(0, 212, 255, 0.2);
             border-radius: 15px;
-            padding: 40px;
+            padding: 25px;
             text-align: center;
-            background: #f8f9ff;
-            margin-bottom: 30px;
+            background: rgba(255,255,255,0.02);
+            margin-bottom: 20px;
             transition: all 0.3s;
         }
         
         .upload-section:hover {
-            border-color: #764ba2;
-            background: #f0f1ff;
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.03);
         }
         
         .upload-section input[type="file"] {
@@ -62,114 +133,153 @@
         }
         
         .upload-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00d4ff, #7b2ffc);
             color: white;
             border: none;
-            padding: 15px 40px;
+            padding: 12px 35px;
             border-radius: 50px;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            transition: transform 0.2s;
-            margin: 10px;
+            transition: all 0.3s;
+            font-weight: 600;
         }
         
         .upload-btn:hover {
             transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.2);
         }
         
-        .upload-btn:active {
-            transform: scale(0.95);
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px 18px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 3px solid #00d4ff;
         }
+        
+        .status-text {
+            color: #aaa;
+            font-size: 13px;
+        }
+        
+        .status-text.success { color: #69f0ae; }
+        .status-text.warning { color: #ffd740; }
+        .status-text.danger { color: #ff5252; }
+        .status-text.info { color: #40c4ff; }
         
         .controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
-            margin: 20px 0;
-            padding: 20px;
-            background: #f8f9ff;
+            gap: 12px;
+            margin: 15px 0;
+            padding: 18px;
+            background: rgba(255,255,255,0.03);
             border-radius: 15px;
             align-items: center;
+            border: 1px solid rgba(255,255,255,0.05);
         }
         
         .controls label {
             font-weight: 600;
-            color: #333;
+            color: #ccc;
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 13px;
         }
         
         .controls input[type="range"] {
-            width: 150px;
+            width: 100px;
+            accent-color: #00d4ff;
+            cursor: pointer;
         }
         
         .controls input[type="number"] {
-            width: 80px;
-            padding: 5px 10px;
-            border: 1px solid #ddd;
+            width: 65px;
+            padding: 4px 8px;
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 13px;
+        }
+        
+        .controls select {
+            padding: 5px 10px;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 13px;
         }
         
         .btn {
-            padding: 10px 25px;
+            padding: 8px 20px;
             border: none;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
         }
         
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .btn-primary { background: linear-gradient(135deg, #00d4ff, #7b2ffc); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 25px rgba(0, 212, 255, 0.2); }
+        .btn-success { background: #00c853; color: white; }
+        .btn-success:hover { transform: translateY(-2px); }
+        .btn-danger { background: #ff1744; color: white; }
+        .btn-danger:hover { transform: translateY(-2px); }
+        .btn-warning { background: #ff9100; color: #333; }
+        .btn-warning:hover { transform: translateY(-2px); }
+        .btn-info { background: #2979ff; color: white; }
+        .btn-info:hover { transform: translateY(-2px); }
+        .btn-pulse { background: linear-gradient(135deg, #ff4081, #f50057); color: white; animation: pulse 1.5s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
         }
         
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin: 12px 0;
         }
         
-        .btn-success {
-            background: #28a745;
-            color: white;
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
         }
         
-        .btn-danger {
-            background: #dc3545;
-            color: white;
+        .stat-card .number {
+            font-size: 22px;
+            font-weight: 700;
+            color: #00d4ff;
         }
         
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-        
-        .btn-info {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .info-box {
-            background: #f0f8ff;
-            border-left: 4px solid #17a2b8;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-        
-        .info-box strong {
-            color: #17a2b8;
+        .stat-card .label {
+            color: #888;
+            font-size: 11px;
+            margin-top: 3px;
         }
         
         .waveform-container {
-            background: #1a1a2e;
+            background: rgba(0,0,0,0.4);
             border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
+            padding: 15px;
+            margin: 15px 0;
             position: relative;
             min-height: 200px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
         
         #waveform {
@@ -179,103 +289,117 @@
         
         .event-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
         }
         
         .event-card {
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 12px;
-            padding: 15px;
+            padding: 12px;
             transition: all 0.3s;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            cursor: pointer;
         }
         
         .event-card:hover {
-            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.06);
             transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .event-card.active {
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.05);
         }
         
         .event-card .event-number {
             font-weight: 700;
-            color: #667eea;
-            font-size: 16px;
+            color: #00d4ff;
+            font-size: 14px;
         }
         
         .event-card .event-time {
-            color: #666;
-            font-size: 14px;
-            margin: 5px 0;
+            color: #999;
+            font-size: 12px;
+            margin: 2px 0;
         }
         
         .event-card .event-duration {
-            color: #28a745;
+            color: #69f0ae;
             font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .event-card .event-features {
+            display: flex;
+            gap: 6px;
+            margin: 6px 0;
+            flex-wrap: wrap;
+        }
+        
+        .event-card .feature-tag {
+            background: rgba(0, 212, 255, 0.08);
+            padding: 1px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            color: #00d4ff;
+            border: 1px solid rgba(0, 212, 255, 0.05);
         }
         
         .event-card .btn-group {
             display: flex;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 5px;
+            margin-top: 8px;
             flex-wrap: wrap;
         }
         
         .event-card .btn-group .btn {
             flex: 1;
-            min-width: 60px;
-            padding: 6px 12px;
-            font-size: 12px;
+            min-width: 45px;
+            padding: 4px 8px;
+            font-size: 11px;
         }
         
         .player-container {
-            background: #f8f9ff;
+            background: rgba(0,0,0,0.4);
             border-radius: 12px;
-            padding: 20px;
+            padding: 18px;
             margin: 15px 0;
             display: none;
+            border: 1px solid rgba(0, 212, 255, 0.15);
         }
         
         .player-container.active {
             display: block;
         }
         
+        .player-container audio {
+            width: 100%;
+            margin: 8px 0;
+        }
+        
         .progress-bar {
             width: 100%;
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
+            height: 3px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
             overflow: hidden;
-            margin: 10px 0;
+            margin: 8px 0;
         }
         
         .progress-bar .progress {
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00d4ff, #7b2ffc);
             transition: width 0.1s;
             width: 0%;
-        }
-        
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background: #f8f9ff;
-            border-radius: 10px;
-            margin: 10px 0;
-        }
-        
-        .status-text {
-            color: #666;
-            font-size: 14px;
         }
         
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 25px;
         }
         
         .loading.active {
@@ -283,8 +407,8 @@
         }
         
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border: 4px solid rgba(255,255,255,0.05);
+            border-top: 4px solid #00d4ff;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -299,80 +423,159 @@
         
         .color-tag {
             display: inline-block;
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            margin-right: 6px;
+            margin-right: 5px;
         }
         
         .export-section {
-            margin: 20px 0;
-            padding: 20px;
-            background: #f8f9ff;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .file-list-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a3e;
+            padding: 25px;
             border-radius: 15px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            max-width: 500px;
+            max-height: 70vh;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+        
+        .file-list-popup.active {
+            display: block;
+        }
+        
+        .file-list-popup .file-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-list-popup .file-item:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .overlay.active {
+            display: block;
         }
         
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .event-list {
-                grid-template-columns: 1fr;
-            }
+            .container { padding: 12px; }
+            .header { flex-direction: column; align-items: stretch; }
+            .current-file-display { max-width: 100%; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .event-list { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .file-manager { flex-wrap: wrap; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎵 音頻事件分類器</h1>
-        <div class="subtitle">聲音分離 · 事件標記 · 播放驗證</div>
+        <!-- 頂部標題與檔案顯示 -->
+        <div class="header">
+            <h1>🔊 超極致靈敏音頻檢測器 v2.0</h1>
+            <div class="current-file-display" id="currentFileDisplay">
+                <span class="file-icon">📁</span>
+                <span class="file-name" id="currentFileName">尚未載入檔案</span>
+                <span id="fileEventCount" style="color: #ff4081; font-size: 12px;"></span>
+            </div>
+        </div>
+        
+        <!-- 檔案管理 -->
+        <div class="file-manager" id="fileManager">
+            <span style="font-size: 12px; color: #888;">已載入檔案：</span>
+            <div id="fileTabs" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+            <button class="btn btn-info" onclick="showFileList()" style="padding: 4px 12px; font-size: 12px;">📋 所有檔案</button>
+        </div>
         
         <!-- 上傳區域 -->
-        <div class="upload-section" id="uploadSection">
-            <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-            <h3>上傳音頻檔案</h3>
-            <p style="color: #666; margin: 10px 0;">支援 WAV, MP3, FLAC, M4A, OGG 格式</p>
+        <div class="upload-section">
+            <div style="font-size: 36px; margin-bottom: 8px;">🎵</div>
+            <h3 style="color: #fff; font-size: 18px;">上傳音頻檔案</h3>
+            <p style="color: #888; margin: 8px 0; font-size: 13px;">支援 WAV, MP3, FLAC, M4A, OGG, AAC, WMA</p>
             <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                🎵 選擇音頻檔案
+                📂 選擇音頻檔案 (可多選)
             </button>
-            <input type="file" id="fileInput" accept=".wav,.mp3,.flac,.m4a,.ogg,.aac">
-            <p id="fileName" style="color: #28a745; margin-top: 10px;"></p>
+            <input type="file" id="fileInput" accept=".wav,.mp3,.flac,.m4a,.ogg,.aac,.wma" multiple>
+            <p id="uploadStatus" style="color: #69f0ae; margin-top: 8px; font-size: 13px;"></p>
         </div>
         
         <!-- 狀態欄 -->
         <div class="status-bar">
-            <span class="status-text" id="statusText">📊 等待上傳音頻...</span>
+            <span class="status-text" id="statusText">🎯 等待上傳音頻...</span>
             <span class="status-text" id="fileInfo"></span>
         </div>
         
         <!-- 控制面板 -->
         <div class="controls">
             <label>
-                靈敏度
-                <input type="range" id="sensitivity" min="0.5" max="3" step="0.1" value="1.5">
-                <span id="sensitivityValue">1.5</span>
+                🔥 靈敏度
+                <input type="range" id="sensitivity" min="0.01" max="5" step="0.01" value="0.05">
+                <span id="sensitivityValue" style="min-width: 35px; color: #00d4ff;">0.05</span>
             </label>
             <label>
-                最短事件 (秒)
-                <input type="number" id="minDuration" value="0.3" step="0.1" min="0.05" max="2">
+                ⏱️ 最短事件 (秒)
+                <input type="number" id="minDuration" value="0.01" step="0.001" min="0.001" max="0.5">
             </label>
-            <button class="btn btn-primary" onclick="detectEvents()">🔍 檢測事件</button>
-            <button class="btn btn-info" onclick="useSpectralDetection()">🎯 頻譜分析</button>
+            <label>
+                📊 檢測模式
+                <select id="detectMode">
+                    <option value="all">全部 (最敏感)</option>
+                    <option value="energy">音量變化</option>
+                    <option value="spectral">頻率變化</option>
+                    <option value="onset">節奏變化</option>
+                    <option value="timbre">音色變化</option>
+                </select>
+            </label>
+            <button class="btn btn-pulse" onclick="ultraSensitiveDetect()">⚡ 極致檢測</button>
+            <button class="btn btn-primary" onclick="detectEvents()">🔍 標準檢測</button>
             <button class="btn btn-success" onclick="exportAllEvents()">💾 導出全部</button>
-            <button class="btn btn-danger" onclick="clearAll()">🗑️ 清除</button>
+            <button class="btn btn-danger" onclick="clearCurrentFile()">🗑️ 清除</button>
+        </div>
+        
+        <!-- 統計 -->
+        <div class="stats-grid" id="statsGrid" style="display: none;">
+            <div class="stat-card"><div class="number" id="statEvents">0</div><div class="label">事件數</div></div>
+            <div class="stat-card"><div class="number" id="statAvgDuration">0s</div><div class="label">平均時長</div></div>
+            <div class="stat-card"><div class="number" id="statCoverage">0%</div><div class="label">聲音覆蓋率</div></div>
+            <div class="stat-card"><div class="number" id="statMaxDuration">0s</div><div class="label">最長事件</div></div>
+            <div class="stat-card"><div class="number" id="statMinDuration">0s</div><div class="label">最短事件</div></div>
         </div>
         
         <!-- 載入動畫 -->
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p style="margin-top: 10px; color: #666;">正在分析音頻...</p>
+            <p style="margin-top: 12px; color: #888; font-size: 14px;">🔬 正在進行超精細音頻分析...</p>
         </div>
         
-        <!-- 波形圖 -->
+        <!-- 波形 -->
         <div class="waveform-container">
             <canvas id="waveform"></canvas>
         </div>
@@ -380,67 +583,76 @@
         <!-- 播放器 -->
         <div class="player-container" id="playerContainer">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong id="playerTitle">🎧 播放事件</strong>
-                <button class="btn btn-danger" onclick="closePlayer()" style="padding: 5px 10px;">✕</button>
+                <strong id="playerTitle" style="color: #00d4ff; font-size: 14px;">🎧 播放事件</strong>
+                <button class="btn btn-danger" onclick="closePlayer()" style="padding: 4px 12px; font-size: 12px;">✕</button>
             </div>
-            <audio id="audioPlayer" controls style="width: 100%; margin: 10px 0;"></audio>
-            <div class="progress-bar">
-                <div class="progress" id="playProgress"></div>
-            </div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <audio id="audioPlayer" controls style="width: 100%; margin: 8px 0;"></audio>
+            <div class="progress-bar"><div class="progress" id="playProgress"></div></div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button class="btn btn-primary" onclick="playPrevious()">⏮ 上一個</button>
                 <button class="btn btn-primary" onclick="playNext()">⏭ 下一個</button>
+                <button class="btn btn-info" onclick="playAllEvents()">▶▶ 全部播放</button>
             </div>
         </div>
         
         <!-- 事件列表 -->
-        <div style="margin-top: 20px;">
-            <h3>📋 檢測到的事件 <span id="eventCount">(0)</span></h3>
+        <div style="margin-top: 15px;">
+            <h3 style="color: #fff; font-size: 16px;">📋 檢測到的事件 <span id="eventCount" style="color: #00d4ff;">(0)</span></h3>
             <div id="eventList" class="event-list"></div>
         </div>
         
         <!-- 導出區域 -->
         <div class="export-section" id="exportSection" style="display: none;">
-            <h4>📦 導出選項</h4>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-                <button class="btn btn-success" onclick="exportTimeline()">📄 導出時間線</button>
-                <button class="btn btn-warning" onclick="exportAllEvents()">🎵 導出所有事件</button>
+            <h4 style="color: #ccc; font-size: 14px;">📦 導出選項</h4>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                <button class="btn btn-success" onclick="exportTimeline()">📄 時間線</button>
+                <button class="btn btn-success" onclick="exportAllEvents()">🎵 所有事件音頻</button>
+                <button class="btn btn-warning" onclick="exportReport()">📊 分析報告</button>
+                <button class="btn btn-info" onclick="exportAllFilesReport()">📋 所有檔案報告</button>
             </div>
-            <div id="exportResult" style="margin-top: 10px; color: #28a745;"></div>
+            <div id="exportResult" style="margin-top: 8px; color: #69f0ae; font-size: 13px;"></div>
         </div>
         
-        <!-- 底部資訊 -->
-        <div class="info-box" style="margin-top: 20px;">
-            <strong>💡 提示：</strong>
-            點擊事件卡片上的「播放」按鈕可驗證分離的聲音，上下鍵可切換事件。
-            靈敏度越高檢測越嚴格，最短事件時間可過濾短暫的雜訊。
+        <div style="margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; border-left: 3px solid #ffd740;">
+            <strong style="color: #ffd740; font-size: 13px;">💡 超極致靈敏模式：</strong>
+            <span style="color: #aaa; font-size: 12px;">
+                靈敏度可低至 0.01，最短事件可達 0.001 秒。可同時檢測音量、頻率、節奏、音色變化。
+                支援多檔案同時載入與管理，每個檔案獨立保存檢測結果。
+            </span>
         </div>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/audiobuffer-to-wav@1.0.0/index.js"></script>
+    <!-- 檔案列表彈窗 -->
+    <div class="overlay" id="overlay" onclick="closeFileList()"></div>
+    <div class="file-list-popup" id="fileListPopup">
+        <h3 style="color: #00d4ff; margin-bottom: 15px;">📋 所有已載入檔案</h3>
+        <div id="fileListContent"></div>
+        <button class="btn btn-danger" onclick="closeFileList()" style="margin-top: 15px; width: 100%;">關閉</button>
+    </div>
+    
     <script>
         // ==================== 全局變數 ====================
+        const fileStore = {}; // { fileName: { audioData, sampleRate, duration, events, name } }
+        let currentFile = null;
         let audioContext = null;
         let audioBuffer = null;
         let audioData = null;
         let sampleRate = 22050;
         let events = [];
         let currentEventIndex = -1;
-        let separatedAudios = {};
-        let canvasCtx = null;
-        let waveformImageData = null;
-        let isPlaying = false;
-        let audioPlayer = null;
+        let allEventsPlaying = false;
         
         // 顏色配置
         const eventColors = [
-            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-            '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+            '#00d4ff', '#7b2ffc', '#ff4081', '#69f0ae', '#ffd740',
+            '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#dda0dd',
+            '#ff9a76', '#f7dc6f', '#bb8fce', '#85c1e9', '#f1948a',
+            '#ff5252', '#448aff', '#ffab40', '#00e676', '#ea80fc'
         ];
         
-        // ==================== DOM 引用 ====================
+        // DOM 引用
         const fileInput = document.getElementById('fileInput');
-        const fileName = document.getElementById('fileName');
+        const uploadStatus = document.getElementById('uploadStatus');
         const statusText = document.getElementById('statusText');
         const fileInfo = document.getElementById('fileInfo');
         const eventList = document.getElementById('eventList');
@@ -456,6 +668,10 @@
         const exportSection = document.getElementById('exportSection');
         const exportResult = document.getElementById('exportResult');
         const canvas = document.getElementById('waveform');
+        const statsGrid = document.getElementById('statsGrid');
+        const currentFileName = document.getElementById('currentFileName');
+        const fileEventCount = document.getElementById('fileEventCount');
+        const fileTabs = document.getElementById('fileTabs');
         
         // ==================== 事件監聽 ====================
         sensitivity.addEventListener('input', function() {
@@ -463,193 +679,198 @@
         });
         
         fileInput.addEventListener('change', function(e) {
-            const file = this.files[0];
-            if (file) {
-                fileName.textContent = `✅ 已選擇: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-                loadAudioFile(file);
+            const files = this.files;
+            if (files.length > 0) {
+                uploadStatus.textContent = `⏳ 正在載入 ${files.length} 個檔案...`;
+                let loaded = 0;
+                for (const file of files) {
+                    loadAudioFile(file, () => {
+                        loaded++;
+                        uploadStatus.textContent = `✅ 已載入 ${loaded}/${files.length} 個檔案`;
+                        if (loaded === files.length) {
+                            uploadStatus.textContent = `✅ 成功載入 ${files.length} 個檔案！`;
+                            updateFileTabs();
+                        }
+                    });
+                }
             }
         });
         
         // ==================== 音頻載入 ====================
-        function loadAudioFile(file) {
+        function loadAudioFile(file, callback) {
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
-                    statusText.textContent = '⏳ 正在載入音頻...';
-                    
                     if (!audioContext) {
                         audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     }
                     
                     const arrayBuffer = e.target.result;
-                    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                    audioData = audioBuffer.getChannelData(0);
-                    sampleRate = audioBuffer.sampleRate;
+                    const buffer = await audioContext.decodeAudioData(arrayBuffer);
+                    const data = buffer.getChannelData(0);
+                    const sr = buffer.sampleRate;
+                    const duration = buffer.duration;
                     
-                    // 更新資訊
-                    const duration = audioBuffer.duration;
-                    fileInfo.textContent = `⏱️ ${duration.toFixed(2)}秒 | 📊 ${sampleRate} Hz | ${audioBuffer.numberOfChannels}聲道`;
+                    // 儲存檔案
+                    const fileName = file.name;
+                    fileStore[fileName] = {
+                        audioData: data,
+                        sampleRate: sr,
+                        duration: duration,
+                        events: [],
+                        name: fileName,
+                        fileSize: file.size,
+                        loaded: true
+                    };
                     
-                    // 繪製波形
-                    drawWaveform(audioData, sampleRate);
+                    // 如果是第一個檔案，自動設為當前
+                    if (!currentFile) {
+                        currentFile = fileName;
+                        setCurrentFile(fileName);
+                    }
                     
-                    statusText.textContent = `✅ 音頻載入完成！點擊「檢測事件」開始分析`;
-                    fileName.textContent = `✅ 已載入: ${file.name}`;
+                    if (callback) callback();
                     
                 } catch (error) {
-                    console.error('載入音頻失敗:', error);
-                    statusText.textContent = '❌ 載入音頻失敗，請確認檔案格式正確';
+                    console.error('載入失敗:', error);
+                    uploadStatus.textContent = `❌ 載入 ${file.name} 失敗: ${error.message}`;
                 }
             };
             reader.readAsArrayBuffer(file);
         }
         
-        // ==================== 繪製波形 ====================
-        function drawWaveform(data, sr) {
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width = canvas.parentElement.clientWidth - 40;
-            const height = canvas.height = 200;
+        // ==================== 設定當前檔案 ====================
+        function setCurrentFile(fileName) {
+            if (!fileStore[fileName]) return;
             
-            ctx.clearRect(0, 0, width, height);
+            currentFile = fileName;
+            const data = fileStore[fileName];
+            audioData = data.audioData;
+            sampleRate = data.sampleRate;
+            events = data.events || [];
             
-            // 繪製背景
-            const gradient = ctx.createLinearGradient(0, 0, width, 0);
-            gradient.addColorStop(0, '#1a1a2e');
-            gradient.addColorStop(0.5, '#16213e');
-            gradient.addColorStop(1, '#1a1a2e');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, width, height);
+            // 更新顯示
+            currentFileName.textContent = fileName;
+            fileEventCount.textContent = events.length > 0 ? `(${events.length} 個事件)` : '';
             
-            // 繪製波形
-            const step = Math.max(1, Math.floor(data.length / width));
-            const halfHeight = height / 2;
+            // 更新波形
+            drawWaveform(audioData, sampleRate);
+            renderEvents();
+            updateStats();
             
-            ctx.beginPath();
-            ctx.strokeStyle = '#667eea';
-            ctx.lineWidth = 2;
+            statusText.textContent = `📁 當前檔案: ${fileName}`;
+            statusText.className = 'status-text info';
+            fileInfo.textContent = `⏱️ ${data.duration.toFixed(2)}秒 | 📊 ${sampleRate} Hz`;
             
-            for (let i = 0; i < width; i++) {
-                const idx = Math.floor(i * step);
-                if (idx >= data.length) break;
-                const val = data[idx];
-                const y = halfHeight + val * halfHeight * 0.8;
-                
-                if (i === 0) {
-                    ctx.moveTo(i, y);
-                } else {
-                    ctx.lineTo(i, y);
-                }
-            }
-            ctx.stroke();
+            // 更新檔案標籤
+            updateFileTabs();
             
-            // 繪製網格線
-            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < 10; i++) {
-                const x = (i / 10) * width;
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, height);
-                ctx.stroke();
-            }
-            
-            // 繪製事件標記
-            for (let i = 0; i < events.length; i++) {
-                const [start, end] = events[i];
-                const duration = audioBuffer ? audioBuffer.duration : 1;
-                const x1 = (start / duration) * width;
-                const x2 = (end / duration) * width;
-                
-                ctx.fillStyle = eventColors[i % eventColors.length] + '30';
-                ctx.fillRect(x1, 0, x2 - x1, height);
-                
-                // 邊框
-                ctx.strokeStyle = eventColors[i % eventColors.length];
-                ctx.lineWidth = 2;
-                ctx.setLineDash([4, 4]);
-                ctx.strokeRect(x1, 0, x2 - x1, height);
-                ctx.setLineDash([]);
-                
-                // 標籤
-                ctx.fillStyle = '#fff';
-                ctx.font = '12px Arial';
-                ctx.fillText(`E${i+1}`, x1 + 5, 20);
+            // 如果沒有事件，自動檢測
+            if (events.length === 0) {
+                setTimeout(() => ultraSensitiveDetect(), 200);
             }
         }
         
-        // ==================== 事件檢測 ====================
-        function detectEvents() {
+        // ==================== 更新檔案標籤 ====================
+        function updateFileTabs() {
+            const fileNames = Object.keys(fileStore);
+            if (fileNames.length === 0) {
+                fileTabs.innerHTML = '<span style="color: #666; font-size: 12px;">尚無檔案</span>';
+                return;
+            }
+            
+            fileTabs.innerHTML = fileNames.map(name => {
+                const eventCount = fileStore[name].events ? fileStore[name].events.length : 0;
+                const isActive = name === currentFile;
+                return `<div class="file-tab ${isActive ? 'active' : ''}" onclick="switchFile('${name}')">
+                    ${name.length > 15 ? name.substring(0, 12) + '...' : name}
+                    ${eventCount > 0 ? `<span class="event-badge">${eventCount}</span>` : ''}
+                </div>`;
+            }).join('');
+        }
+        
+        // ==================== 切換檔案 ====================
+        function switchFile(fileName) {
+            if (fileStore[fileName]) {
+                setCurrentFile(fileName);
+                closeFileList();
+            }
+        }
+        
+        // ==================== 顯示檔案列表 ====================
+        function showFileList() {
+            const content = document.getElementById('fileListContent');
+            const fileNames = Object.keys(fileStore);
+            
+            if (fileNames.length === 0) {
+                content.innerHTML = '<p style="color: #666;">尚無已載入的檔案</p>';
+            } else {
+                content.innerHTML = fileNames.map(name => {
+                    const data = fileStore[name];
+                    const count = data.events ? data.events.length : 0;
+                    return `<div class="file-item" onclick="switchFile('${name}')">
+                        <span>${name}</span>
+                        <span style="color: #00d4ff; font-size: 12px;">${count} 個事件</span>
+                    </div>`;
+                }).join('');
+            }
+            
+            document.getElementById('fileListPopup').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+        }
+        
+        function closeFileList() {
+            document.getElementById('fileListPopup').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+        
+        // ==================== 極致檢測 ====================
+        function ultraSensitiveDetect() {
             if (!audioData) {
                 statusText.textContent = '❌ 請先載入音頻檔案';
+                statusText.className = 'status-text danger';
                 return;
             }
             
             loading.classList.add('active');
-            statusText.textContent = '⏳ 正在檢測事件...';
-            events = [];
+            statusText.textContent = '🔬 正在進行超極致靈敏檢測 (0.01秒精度)...';
+            statusText.className = 'status-text';
             
             setTimeout(() => {
                 try {
                     const thresholdMultiplier = parseFloat(sensitivity.value);
-                    const minDur = parseFloat(minDuration.value);
+                    const minDur = Math.max(0.001, parseFloat(minDuration.value));
+                    const mode = document.getElementById('detectMode').value;
                     
-                    // 計算短時能量
-                    const frameLength = Math.floor(0.025 * sampleRate);
-                    const hopLength = Math.floor(0.010 * sampleRate);
+                    // 提取多種特徵 (更高解析度)
+                    const features = extractHighResFeatures(audioData, sampleRate);
                     
-                    const energy = [];
-                    for (let i = 0; i < audioData.length - frameLength; i += hopLength) {
-                        let sum = 0;
-                        for (let j = 0; j < frameLength && i + j < audioData.length; j++) {
-                            sum += audioData[i + j] * audioData[i + j];
-                        }
-                        energy.push(Math.sqrt(sum / frameLength));
+                    let allDetections = [];
+                    
+                    // 所有特徵檢測
+                    const energyDetections = detectByFeature(features.energy, thresholdMultiplier * 0.6, minDur, sampleRate, features.times);
+                    const spectralDetections = detectByFeature(features.spectral, thresholdMultiplier * 0.5, minDur, sampleRate, features.times);
+                    const onsetDetections = detectByFeature(features.onset, thresholdMultiplier * 0.4, minDur * 0.5, sampleRate, features.times);
+                    const timbreDetections = detectByFeature(features.timbre, thresholdMultiplier * 0.7, minDur, sampleRate, features.times);
+                    
+                    // 根據模式選擇
+                    if (mode === 'all') {
+                        allDetections = [...energyDetections, ...spectralDetections, ...onsetDetections, ...timbreDetections];
+                    } else if (mode === 'energy') {
+                        allDetections = energyDetections;
+                    } else if (mode === 'spectral') {
+                        allDetections = spectralDetections;
+                    } else if (mode === 'onset') {
+                        allDetections = onsetDetections;
+                    } else if (mode === 'timbre') {
+                        allDetections = timbreDetections;
                     }
                     
-                    // 動態閾值
-                    const mean = energy.reduce((a, b) => a + b, 0) / energy.length;
-                    const std = Math.sqrt(energy.reduce((a, b) => a + (b - mean) * (b - mean), 0) / energy.length);
-                    const threshold = mean + thresholdMultiplier * std;
-                    
-                    // 檢測事件
-                    const times = [];
-                    for (let i = 0; i < energy.length; i++) {
-                        times.push((i * hopLength) / sampleRate);
-                    }
-                    
-                    let inEvent = false;
-                    let startIdx = 0;
-                    const detectedEvents = [];
-                    
-                    for (let i = 0; i < energy.length; i++) {
-                        const isAbove = energy[i] > threshold;
-                        if (isAbove && !inEvent) {
-                            inEvent = true;
-                            startIdx = i;
-                        } else if (!isAbove && inEvent) {
-                            inEvent = false;
-                            const endIdx = i;
-                            const startTime = times[startIdx];
-                            const endTime = times[Math.min(endIdx - 1, times.length - 1)];
-                            if (endTime - startTime >= minDur) {
-                                detectedEvents.push([startTime, endTime]);
-                            }
-                        }
-                    }
-                    
-                    if (inEvent) {
-                        const endTime = times[times.length - 1];
-                        const startTime = times[startIdx];
-                        if (endTime - startTime >= minDur) {
-                            detectedEvents.push([startTime, endTime]);
-                        }
-                    }
-                    
-                    // 合併重疊事件
-                    detectedEvents.sort((a, b) => a[0] - b[0]);
+                    // 合併重疊事件 (更精細的合併)
+                    allDetections.sort((a, b) => a[0] - b[0]);
                     const mergedEvents = [];
-                    for (const evt of detectedEvents) {
-                        if (mergedEvents.length === 0 || evt[0] > mergedEvents[mergedEvents.length - 1][1] + 0.1) {
+                    for (const evt of allDetections) {
+                        if (mergedEvents.length === 0 || evt[0] > mergedEvents[mergedEvents.length - 1][1] + minDur * 0.3) {
                             mergedEvents.push(evt);
                         } else {
                             mergedEvents[mergedEvents.length - 1][1] = Math.max(
@@ -659,122 +880,228 @@
                         }
                     }
                     
-                    events = mergedEvents;
+                    // 過濾太短的事件
+                    events = mergedEvents.filter(evt => evt[1] - evt[0] >= minDur);
+                    
+                    // 儲存到檔案儲存
+                    if (currentFile && fileStore[currentFile]) {
+                        fileStore[currentFile].events = events;
+                    }
                     
                     // 更新UI
                     renderEvents();
                     drawWaveform(audioData, sampleRate);
+                    updateStats();
+                    updateFileTabs();
                     
-                    statusText.textContent = `✅ 檢測完成！找到 ${events.length} 個事件`;
+                    fileEventCount.textContent = events.length > 0 ? `(${events.length} 個事件)` : '';
+                    
+                    statusText.textContent = `✅ 檢測完成！找到 ${events.length} 個事件 (靈敏度: ${thresholdMultiplier}, 最短: ${minDur}秒)`;
+                    statusText.className = 'status-text success';
                     eventCount.textContent = `(${events.length})`;
-                    exportSection.style.display = 'block';
+                    exportSection.style.display = events.length > 0 ? 'block' : 'none';
+                    statsGrid.style.display = events.length > 0 ? 'grid' : 'none';
                     
                     if (events.length === 0) {
-                        statusText.textContent = '⚠️ 未檢測到事件，請調整靈敏度或最短事件時間';
+                        statusText.textContent = '⚠️ 未檢測到事件，請嘗試更低靈敏度 (0.01-0.03)';
+                        statusText.className = 'status-text warning';
                     }
                     
                 } catch (error) {
                     console.error('檢測失敗:', error);
                     statusText.textContent = '❌ 檢測失敗: ' + error.message;
+                    statusText.className = 'status-text danger';
                 }
                 
                 loading.classList.remove('active');
             }, 100);
         }
         
-        // ==================== 頻譜分析檢測 ====================
-        function useSpectralDetection() {
-            if (!audioData) {
-                statusText.textContent = '❌ 請先載入音頻檔案';
-                return;
+        // ==================== 高解析度特徵提取 ====================
+        function extractHighResFeatures(data, sr) {
+            const frameLength = Math.floor(0.01 * sr); // 10ms frame
+            const hopLength = Math.floor(0.002 * sr); // 2ms hop (超高解析度)
+            const numFrames = Math.max(1, Math.floor((data.length - frameLength) / hopLength));
+            
+            const times = [];
+            const energy = [];
+            const spectral = [];
+            const onset = [];
+            const timbre = [];
+            
+            let prevFrame = null;
+            
+            for (let i = 0; i < numFrames; i++) {
+                const start = i * hopLength;
+                if (start + frameLength > data.length) break;
+                const frame = data.slice(start, start + frameLength);
+                const time = start / sr;
+                times.push(time);
+                
+                // 1. 音量能量 (更精確)
+                let sum = 0;
+                let maxVal = 0;
+                for (let j = 0; j < frame.length; j++) {
+                    const v = frame[j] * frame[j];
+                    sum += v;
+                    if (Math.abs(frame[j]) > maxVal) maxVal = Math.abs(frame[j]);
+                }
+                energy.push(Math.sqrt(sum / frame.length) + maxVal * 0.1);
+                
+                // 2. 頻譜特徵 (更多頻帶)
+                let spectralSum = 0;
+                let weightSum = 0;
+                for (let k = 0; k < 128 && k < frame.length; k++) {
+                    const val = Math.abs(frame[k]);
+                    spectralSum += val * k;
+                    weightSum += val;
+                }
+                spectral.push(weightSum > 0 ? spectralSum / weightSum : 0);
+                
+                // 3. 節奏變化 (更敏感)
+                if (prevFrame) {
+                    let onsetVal = 0;
+                    const len = Math.min(frame.length, prevFrame.length);
+                    for (let j = 0; j < len; j++) {
+                        const diff = frame[j] - prevFrame[j];
+                        onsetVal += diff * diff;
+                    }
+                    onset.push(Math.sqrt(onsetVal / len));
+                } else {
+                    onset.push(0);
+                }
+                prevFrame = frame.slice();
+                
+                // 4. 音色特徵 (更精細)
+                let geomMean = 0;
+                let arithMean = 0;
+                const n = Math.min(64, frame.length);
+                for (let k = 0; k < n; k++) {
+                    const val = Math.abs(frame[k]) + 0.0001;
+                    geomMean += Math.log(val);
+                    arithMean += val;
+                }
+                geomMean = Math.exp(geomMean / n);
+                arithMean = arithMean / n;
+                timbre.push(arithMean > 0 ? Math.min(1, geomMean / arithMean) : 0);
             }
             
-            statusText.textContent = '⏳ 正在進行頻譜分析...';
-            loading.classList.add('active');
+            return { times, energy, spectral, onset, timbre };
+        }
+        
+        // ==================== 基於特徵檢測 ====================
+        function detectByFeature(feature, thresholdMultiplier, minDur, sr, times) {
+            if (feature.length === 0) return [];
             
-            setTimeout(() => {
-                try {
-                    // 簡單的頻譜分析 - 使用FFT
-                    const n_fft = 2048;
-                    const hop_length = 512;
-                    const n_components = 3;
-                    
-                    // 計算STFT
-                    const stft = [];
-                    for (let i = 0; i < audioData.length - n_fft; i += hop_length) {
-                        const frame = audioData.slice(i, i + n_fft);
-                        // 加窗
-                        const windowed = frame.map((v, j) => v * (0.5 - 0.5 * Math.cos(2 * Math.PI * j / n_fft)));
-                        // 簡化FFT
-                        const fft = [];
-                        for (let k = 0; k < n_fft / 2; k++) {
-                            let real = 0, imag = 0;
-                            for (let n = 0; n < n_fft; n++) {
-                                const angle = -2 * Math.PI * k * n / n_fft;
-                                real += windowed[n] * Math.cos(angle);
-                                imag += windowed[n] * Math.sin(angle);
-                            }
-                            fft.push(Math.sqrt(real * real + imag * imag));
-                        }
-                        stft.push(fft);
+            const mean = feature.reduce((a, b) => a + b, 0) / feature.length;
+            const std = Math.sqrt(feature.reduce((a, b) => a + (b - mean) * (b - mean), 0) / feature.length);
+            const threshold = Math.max(mean + thresholdMultiplier * std, mean * 0.5);
+            
+            const detections = [];
+            let inEvent = false;
+            let startIdx = 0;
+            
+            for (let i = 0; i < feature.length; i++) {
+                const isAbove = feature[i] > threshold;
+                if (isAbove && !inEvent) {
+                    inEvent = true;
+                    startIdx = i;
+                } else if (!isAbove && inEvent) {
+                    inEvent = false;
+                    const startTime = times[startIdx] || 0;
+                    const endTime = times[Math.min(i - 1, times.length - 1)] || 0;
+                    if (endTime - startTime >= minDur) {
+                        detections.push([startTime, endTime]);
                     }
-                    
-                    // 計算每個頻段的能量變化
-                    const magnitudes = stft.map(frame => frame.reduce((a, b) => a + b, 0) / frame.length);
-                    
-                    // 檢測事件
-                    const mean = magnitudes.reduce((a, b) => a + b, 0) / magnitudes.length;
-                    const std = Math.sqrt(magnitudes.reduce((a, b) => a + (b - mean) * (b - mean), 0) / magnitudes.length);
-                    const threshold = mean + 1.0 * std;
-                    
-                    const times = [];
-                    for (let i = 0; i < magnitudes.length; i++) {
-                        times.push((i * hop_length) / sampleRate);
-                    }
-                    
-                    const detectedEvents = [];
-                    let inEvent = false;
-                    let startIdx = 0;
-                    
-                    for (let i = 0; i < magnitudes.length; i++) {
-                        const isAbove = magnitudes[i] > threshold;
-                        if (isAbove && !inEvent) {
-                            inEvent = true;
-                            startIdx = i;
-                        } else if (!isAbove && inEvent) {
-                            inEvent = false;
-                            const endIdx = i;
-                            const startTime = times[startIdx];
-                            const endTime = times[Math.min(endIdx - 1, times.length - 1)];
-                            if (endTime - startTime >= parseFloat(minDuration.value)) {
-                                detectedEvents.push([startTime, endTime]);
-                            }
-                        }
-                    }
-                    
-                    if (inEvent) {
-                        const endTime = times[times.length - 1];
-                        const startTime = times[startIdx];
-                        if (endTime - startTime >= parseFloat(minDuration.value)) {
-                            detectedEvents.push([startTime, endTime]);
-                        }
-                    }
-                    
-                    events = detectedEvents;
-                    renderEvents();
-                    drawWaveform(audioData, sampleRate);
-                    
-                    statusText.textContent = `✅ 頻譜分析完成！找到 ${events.length} 個事件`;
-                    eventCount.textContent = `(${events.length})`;
-                    exportSection.style.display = 'block';
-                    
-                } catch (error) {
-                    console.error('頻譜分析失敗:', error);
-                    statusText.textContent = '❌ 頻譜分析失敗: ' + error.message;
                 }
+            }
+            
+            if (inEvent) {
+                const startTime = times[startIdx] || 0;
+                const endTime = times[times.length - 1] || 0;
+                if (endTime - startTime >= minDur) {
+                    detections.push([startTime, endTime]);
+                }
+            }
+            
+            return detections;
+        }
+        
+        // ==================== 標準檢測 ====================
+        function detectEvents() {
+            ultraSensitiveDetect();
+        }
+        
+        // ==================== 繪製波形 ====================
+        function drawWaveform(data, sr) {
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const width = canvas.width = Math.max(400, rect.width - 30);
+            const height = canvas.height = 200;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // 背景
+            const gradient = ctx.createLinearGradient(0, 0, width, 0);
+            gradient.addColorStop(0, '#0a0a1a');
+            gradient.addColorStop(0.5, '#1a1a3e');
+            gradient.addColorStop(1, '#0a0a1a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            if (data && data.length > 0) {
+                const step = Math.max(1, Math.floor(data.length / width));
+                const halfHeight = height / 2;
                 
-                loading.classList.remove('active');
-            }, 100);
+                ctx.beginPath();
+                ctx.strokeStyle = '#00d4ff';
+                ctx.lineWidth = 1.5;
+                
+                for (let i = 0; i < width; i++) {
+                    const idx = Math.floor(i * step);
+                    if (idx >= data.length) break;
+                    const val = data[idx];
+                    const y = halfHeight + val * halfHeight * 0.85;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(i, y);
+                    } else {
+                        ctx.lineTo(i, y);
+                    }
+                }
+                ctx.stroke();
+                
+                // 填充
+                ctx.lineTo(width, height);
+                ctx.lineTo(0, height);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(0, 212, 255, 0.03)';
+                ctx.fill();
+            }
+            
+            // 事件標記
+            const duration = audioBuffer ? audioBuffer.duration : (data ? data.length / sampleRate : 1);
+            for (let i = 0; i < events.length; i++) {
+                const [start, end] = events[i];
+                const x1 = Math.max(0, (start / duration) * width);
+                const x2 = Math.min(width, (end / duration) * width);
+                
+                const color = eventColors[i % eventColors.length];
+                ctx.fillStyle = color + '15';
+                ctx.fillRect(x1, 0, x2 - x1, height);
+                
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 3]);
+                ctx.strokeRect(x1, 0, x2 - x1, height);
+                ctx.setLineDash([]);
+                
+                if (x2 - x1 > 20) {
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '9px Arial';
+                    ctx.fillText(`#${i+1}`, x1 + 3, 14);
+                }
+            }
         }
         
         // ==================== 渲染事件列表 ====================
@@ -782,7 +1109,7 @@
             eventList.innerHTML = '';
             
             if (events.length === 0) {
-                eventList.innerHTML = '<div style="text-align:center; padding: 40px; color: #999;">尚未檢測到任何事件</div>';
+                eventList.innerHTML = `<div style="text-align:center; padding: 30px; color: #666; font-size: 14px;">🔍 未檢測到聲音事件</div>`;
                 return;
             }
             
@@ -792,52 +1119,77 @@
                 
                 const card = document.createElement('div');
                 card.className = 'event-card';
+                card.id = `event-${index}`;
                 card.innerHTML = `
                     <div class="event-number">
                         <span class="color-tag" style="background: ${color}"></span>
                         事件 #${index + 1}
                     </div>
-                    <div class="event-time">⏱️ 開始: ${start.toFixed(3)}秒</div>
-                    <div class="event-time">⏱️ 結束: ${end.toFixed(3)}秒</div>
-                    <div class="event-duration">📏 時長: ${duration.toFixed(3)}秒</div>
+                    <div class="event-time">▶ 開始: ${start.toFixed(4)}秒</div>
+                    <div class="event-time">◼ 結束: ${end.toFixed(4)}秒</div>
+                    <div class="event-duration">⏱ 時長: ${duration.toFixed(4)}秒</div>
+                    <div class="event-features">
+                        <span class="feature-tag">🔊 音量變化</span>
+                        <span class="feature-tag">🎵 頻率變化</span>
+                        <span class="feature-tag">🎯 節奏變化</span>
+                    </div>
                     <div class="btn-group">
-                        <button class="btn btn-primary" onclick="playEvent(${index})">▶️ 播放</button>
+                        <button class="btn btn-primary" onclick="playEvent(${index})">▶ 播放</button>
                         <button class="btn btn-success" onclick="saveEvent(${index})">💾 儲存</button>
-                        <button class="btn btn-warning" onclick="viewSpectrum(${index})">📊 頻譜</button>
+                        <button class="btn btn-info" onclick="viewSpectrum(${index})">📊 頻譜</button>
                     </div>
                 `;
                 eventList.appendChild(card);
             });
         }
         
-        // ==================== 播放事件 ====================
+        // ==================== 更新統計 ====================
+        function updateStats() {
+            if (events.length === 0) {
+                statsGrid.style.display = 'none';
+                return;
+            }
+            
+            statsGrid.style.display = 'grid';
+            
+            document.getElementById('statEvents').textContent = events.length;
+            
+            const durations = events.map(e => e[1] - e[0]);
+            const avgDur = durations.reduce((a, b) => a + b, 0) / durations.length;
+            document.getElementById('statAvgDuration').textContent = avgDur.toFixed(4) + 's';
+            
+            const totalDuration = audioBuffer ? audioBuffer.duration : 1;
+            const covered = durations.reduce((a, b) => a + b, 0);
+            document.getElementById('statCoverage').textContent = ((covered / totalDuration) * 100).toFixed(2) + '%';
+            
+            document.getElementById('statMaxDuration').textContent = Math.max(...durations).toFixed(4) + 's';
+            document.getElementById('statMinDuration').textContent = Math.min(...durations).toFixed(4) + 's';
+        }
+        
+        // ==================== 播放功能 ====================
         function playEvent(index) {
-            if (!audioBuffer) return;
+            if (!audioData) return;
             
             const [start, end] = events[index];
-            const offset = 0.3;
+            const offset = 0.1;
             const startSample = Math.max(0, Math.floor((start - offset) * sampleRate));
             const endSample = Math.min(audioData.length, Math.floor((end + offset) * sampleRate));
             const eventData = audioData.slice(startSample, endSample);
             
-            // 創建新的音頻緩衝
             const buffer = audioContext.createBuffer(1, eventData.length, sampleRate);
             buffer.copyToChannel(eventData, 0);
             
-            // 播放
             const source = audioContext.createBufferSource();
             source.buffer = buffer;
             source.connect(audioContext.destination);
             source.start();
             
             currentEventIndex = index;
-            playerTitle.textContent = `🎧 播放事件 ${index + 1} (${start.toFixed(2)}s - ${end.toFixed(2)}s)`;
+            playerTitle.textContent = `🎧 播放事件 ${index + 1} (${start.toFixed(4)}s - ${end.toFixed(4)}s)`;
             
-            // 更新播放器狀態
             const duration = end - start + offset * 2;
             let startTime = audioContext.currentTime;
             
-            // 更新進度條
             const updateProgress = () => {
                 if (audioContext.state === 'running') {
                     const elapsed = audioContext.currentTime - startTime;
@@ -852,13 +1204,55 @@
             };
             updateProgress();
             
-            // 事件結束後重置
             source.onended = () => {
                 playProgress.style.width = '0%';
             };
             
             playerContainer.classList.add('active');
-            statusText.textContent = `▶️ 播放事件 ${index + 1}`;
+            
+            document.querySelectorAll('.event-card').forEach(el => el.classList.remove('active'));
+            const el = document.getElementById(`event-${index}`);
+            if (el) el.classList.add('active');
+            
+            statusText.textContent = `▶️ 播放事件 ${index + 1} (${start.toFixed(4)}s - ${end.toFixed(4)}s)`;
+            statusText.className = 'status-text';
+        }
+        
+        function playPrevious() {
+            if (events.length === 0) return;
+            const idx = currentEventIndex > 0 ? currentEventIndex - 1 : events.length - 1;
+            playEvent(idx);
+        }
+        
+        function playNext() {
+            if (events.length === 0) return;
+            const idx = currentEventIndex < events.length - 1 ? currentEventIndex + 1 : 0;
+            playEvent(idx);
+        }
+        
+        function playAllEvents() {
+            if (events.length === 0 || allEventsPlaying) return;
+            allEventsPlaying = true;
+            let idx = 0;
+            
+            function playNextEvent() {
+                if (idx >= events.length) {
+                    allEventsPlaying = false;
+                    return;
+                }
+                playEvent(idx);
+                idx++;
+                setTimeout(playNextEvent, 800);
+            }
+            playNextEvent();
+        }
+        
+        function closePlayer() {
+            playerContainer.classList.remove('active');
+            if (audioContext && audioContext.state === 'running') {
+                audioContext.suspend();
+            }
+            allEventsPlaying = false;
         }
         
         // ==================== 儲存事件 ====================
@@ -870,18 +1264,19 @@
             const endSample = Math.floor(end * sampleRate);
             const eventData = audioData.slice(startSample, endSample);
             
-            // 轉換為WAV格式並下載
             const wav = audioBufferToWav(eventData, sampleRate);
             const blob = new Blob([wav], { type: 'audio/wav' });
             const url = URL.createObjectURL(blob);
             
+            const fileName = currentFile ? currentFile.replace(/\.[^/.]+$/, '') : 'event';
             const a = document.createElement('a');
             a.href = url;
-            a.download = `event_${index+1}_${start.toFixed(2)}s-${end.toFixed(2)}s.wav`;
+            a.download = `${fileName}_event_${String(index+1).padStart(3, '0')}_${start.toFixed(4)}s.wav`;
             a.click();
             URL.revokeObjectURL(url);
             
             statusText.textContent = `💾 事件 ${index+1} 已下載`;
+            statusText.className = 'status-text success';
         }
         
         // ==================== 導出所有事件 ====================
@@ -891,7 +1286,9 @@
                 return;
             }
             
+            const prefix = currentFile ? currentFile.replace(/\.[^/.]+$/, '') : 'event';
             let count = 0;
+            
             events.forEach(([start, end], index) => {
                 const startSample = Math.floor(start * sampleRate);
                 const endSample = Math.floor(end * sampleRate);
@@ -903,7 +1300,7 @@
                 
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `event_${String(index+1).padStart(3, '0')}_${start.toFixed(2)}s-${end.toFixed(2)}s.wav`;
+                a.download = `${prefix}_event_${String(index+1).padStart(3, '0')}_${start.toFixed(4)}s.wav`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -911,8 +1308,9 @@
                 count++;
             });
             
-            exportResult.textContent = `✅ 已導出 ${count} 個事件音頻`;
+            exportResult.textContent = `✅ 已導出 ${count} 個事件音頻 (${prefix})`;
             statusText.textContent = `✅ 已導出 ${count} 個事件`;
+            statusText.className = 'status-text success';
         }
         
         // ==================== 導出時間線 ====================
@@ -922,26 +1320,116 @@
                 return;
             }
             
-            let text = '音頻事件時間線\n';
-            text += '='.repeat(50) + '\n';
-            text += `總事件數: ${events.length}\n\n`;
+            const prefix = currentFile ? currentFile.replace(/\.[^/.]+$/, '') : 'audio';
+            let text = `🎵 音頻事件時間線 - ${currentFile || '未命名'}\n`;
+            text += '='.repeat(60) + '\n';
+            text += `靈敏度: ${sensitivity.value}\n`;
+            text += `最短事件: ${minDuration.value}秒\n`;
+            text += `事件總數: ${events.length}\n`;
+            text += `總時長: ${(audioBuffer ? audioBuffer.duration : 0).toFixed(2)}秒\n\n`;
             text += '事件列表:\n';
-            text += '-'.repeat(40) + '\n';
+            text += '-'.repeat(50) + '\n';
             
             events.forEach(([start, end], index) => {
                 const duration = end - start;
-                text += `事件 ${String(index+1).padStart(3, ' ')}: ${start.toFixed(3)}s - ${end.toFixed(3)}s  (時長: ${duration.toFixed(3)}s)\n`;
+                text += `#${String(index+1).padStart(4, ' ')}: ${start.toFixed(4)}s → ${end.toFixed(4)}s  (${duration.toFixed(4)}s)\n`;
             });
             
             const blob = new Blob([text], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'events_timeline.txt';
+            a.download = `${prefix}_timeline.txt`;
             a.click();
             URL.revokeObjectURL(url);
             
             exportResult.textContent = '✅ 時間線已下載';
+        }
+        
+        // ==================== 導出報告 ====================
+        function exportReport() {
+            if (events.length === 0) {
+                exportResult.textContent = '⚠️ 沒有事件可以導出';
+                return;
+            }
+            
+            const durations = events.map(e => e[1] - e[0]);
+            const avgDur = durations.reduce((a, b) => a + b, 0) / durations.length;
+            const totalDur = audioBuffer ? audioBuffer.duration : 1;
+            const coverage = (durations.reduce((a, b) => a + b, 0) / totalDur * 100);
+            const prefix = currentFile ? currentFile.replace(/\.[^/.]+$/, '') : 'audio';
+            
+            let text = `📊 音頻事件分析報告 - ${currentFile || '未命名'}\n`;
+            text += '='.repeat(60) + '\n';
+            text += `檢測時間: ${new Date().toLocaleString()}\n`;
+            text += `靈敏度: ${sensitivity.value}\n`;
+            text += `最短事件: ${minDuration.value}秒\n`;
+            text += `總時長: ${totalDur.toFixed(2)}秒\n\n`;
+            text += `📈 統計數據:\n`;
+            text += `  事件總數: ${events.length}\n`;
+            text += `  平均時長: ${avgDur.toFixed(4)}秒\n`;
+            text += `  最長事件: ${Math.max(...durations).toFixed(4)}秒\n`;
+            text += `  最短事件: ${Math.min(...durations).toFixed(4)}秒\n`;
+            text += `  聲音覆蓋率: ${coverage.toFixed(2)}%\n\n`;
+            text += `📋 詳細事件列表:\n`;
+            text += '-'.repeat(50) + '\n';
+            
+            events.forEach(([start, end], index) => {
+                const duration = end - start;
+                text += `#${String(index+1).padStart(3, ' ')}: ${start.toFixed(4)}s → ${end.toFixed(4)}s  (${duration.toFixed(4)}s)\n`;
+            });
+            
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${prefix}_report.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            exportResult.textContent = '✅ 分析報告已下載';
+        }
+        
+        // ==================== 導出所有檔案報告 ====================
+        function exportAllFilesReport() {
+            const fileNames = Object.keys(fileStore);
+            if (fileNames.length === 0) {
+                exportResult.textContent = '⚠️ 沒有檔案可以導出';
+                return;
+            }
+            
+            let text = `📊 所有檔案音頻分析報告\n`;
+            text += '='.repeat(60) + '\n';
+            text += `報告時間: ${new Date().toLocaleString()}\n`;
+            text += `檔案總數: ${fileNames.length}\n\n`;
+            
+            fileNames.forEach(name => {
+                const data = fileStore[name];
+                const evts = data.events || [];
+                const durations = evts.map(e => e[1] - e[0]);
+                const totalDur = data.duration || 0;
+                const coverage = durations.length > 0 ? (durations.reduce((a, b) => a + b, 0) / totalDur * 100) : 0;
+                
+                text += `📁 ${name}\n`;
+                text += `  時長: ${totalDur.toFixed(2)}秒\n`;
+                text += `  事件數: ${evts.length}\n`;
+                text += `  覆蓋率: ${coverage.toFixed(2)}%\n`;
+                if (evts.length > 0) {
+                    text += `  平均時長: ${(durations.reduce((a, b) => a + b, 0) / durations.length).toFixed(4)}秒\n`;
+                    text += `  最長事件: ${Math.max(...durations).toFixed(4)}秒\n`;
+                }
+                text += '\n';
+            });
+            
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'all_files_report.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            exportResult.textContent = '✅ 所有檔案報告已下載';
         }
         
         // ==================== 頻譜查看 ====================
@@ -951,7 +1439,6 @@
             const endSample = Math.floor(end * sampleRate);
             const eventData = audioData.slice(startSample, endSample);
             
-            // 計算簡單頻譜
             const n_fft = 1024;
             const fft = [];
             for (let i = 0; i < n_fft / 2; i++) {
@@ -965,20 +1452,24 @@
                 fft.push(Math.sqrt(real * real + imag * imag));
             }
             
-            // 顯示頻譜圖（在新視窗）
-            const win = window.open('', '_blank', 'width=600,height=400');
+            const prefix = currentFile ? currentFile.replace(/\.[^/.]+$/, '') : 'event';
+            const win = window.open('', '_blank', 'width=650,height=450');
             win.document.write(`
-                <html><head><title>事件 ${index+1} 頻譜</title>
+                <html><head><title>${prefix} 事件 ${index+1} 頻譜</title>
                 <style>
-                    body { font-family: Arial; padding: 20px; background: #f8f9ff; }
-                    h3 { color: #333; }
-                    canvas { width: 100%; height: 300px; background: #1a1a2e; border-radius: 10px; }
+                    body { font-family: Arial; padding: 20px; background: #0a0a1a; color: #e0e0e0; }
+                    h3 { color: #00d4ff; }
+                    .info { color: #888; font-size: 13px; margin: 10px 0; }
+                    canvas { width: 100%; height: 300px; background: #0a0a1a; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+                    button { padding: 10px 25px; background: linear-gradient(135deg, #00d4ff, #7b2ffc); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; }
+                    button:hover { transform: scale(1.05); }
                 </style>
                 </head><body>
-                <h3>事件 ${index+1} 頻譜分析 (${start.toFixed(2)}s - ${end.toFixed(2)}s)</h3>
+                <h3>🎵 ${prefix} - 事件 ${index+1} 頻譜</h3>
+                <div class="info">⏱ ${start.toFixed(4)}s - ${end.toFixed(4)}s | 時長: ${(end-start).toFixed(4)}s</div>
                 <canvas id="spec"></canvas>
-                <p style="color: #666; font-size: 12px;">頻率 (Hz) →</p>
-                <button onclick="window.close()" style="padding: 10px 20px; margin-top: 10px;">關閉</button>
+                <p style="color: #666; font-size: 11px;">頻率 (Hz) →</p>
+                <button onclick="window.close()">關閉</button>
                 <script>
                     const canvas = document.getElementById('spec');
                     const ctx = canvas.getContext('2d');
@@ -986,76 +1477,57 @@
                     canvas.height = 300;
                     
                     const data = ${JSON.stringify(fft)};
-                    const maxVal = Math.max(...data);
+                    const maxVal = Math.max(...data, 0.001);
                     
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    // 繪製背景
-                    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-                    gradient.addColorStop(0, '#1a1a2e');
-                    gradient.addColorStop(0.5, '#16213e');
-                    gradient.addColorStop(1, '#1a1a2e');
-                    ctx.fillStyle = gradient;
+                    ctx.fillStyle = '#0a0a1a';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
-                    // 繪製頻譜
                     ctx.beginPath();
-                    ctx.strokeStyle = '#667eea';
+                    ctx.strokeStyle = '#00d4ff';
                     ctx.lineWidth = 2;
                     
                     for (let i = 0; i < canvas.width; i++) {
                         const idx = Math.floor((i / canvas.width) * data.length);
                         if (idx >= data.length) break;
                         const val = data[idx] / maxVal;
-                        const y = canvas.height - val * canvas.height * 0.8;
+                        const y = canvas.height - Math.max(0, val * canvas.height * 0.85);
                         
-                        if (i === 0) {
-                            ctx.moveTo(i, y);
-                        } else {
-                            ctx.lineTo(i, y);
-                        }
+                        if (i === 0) { ctx.moveTo(i, y); }
+                        else { ctx.lineTo(i, y); }
                     }
                     ctx.stroke();
                     
-                    // 填充區域
-                    ctx.lineTo(canvas.width, canvas.height);
-                    ctx.lineTo(0, canvas.height);
-                    ctx.closePath();
-                    ctx.fillStyle = 'rgba(102, 126, 234, 0.1)';
+                    const maxIdx = data.indexOf(Math.max(...data));
+                    const peakX = (maxIdx / data.length) * canvas.width;
+                    const peakY = canvas.height - (data[maxIdx] / maxVal) * canvas.height * 0.85;
+                    ctx.beginPath();
+                    ctx.arc(peakX, peakY, 5, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#ff4081';
                     ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '11px Arial';
+                    ctx.fillText('峰值', peakX + 10, peakY);
                 <\/script>
                 </body></html>
             `);
         }
         
-        // ==================== 導航功能 ====================
-        function playPrevious() {
-            if (events.length === 0) return;
-            const idx = currentEventIndex > 0 ? currentEventIndex - 1 : events.length - 1;
-            playEvent(idx);
-        }
-        
-        function playNext() {
-            if (events.length === 0) return;
-            const idx = currentEventIndex < events.length - 1 ? currentEventIndex + 1 : 0;
-            playEvent(idx);
-        }
-        
-        function closePlayer() {
-            playerContainer.classList.remove('active');
-            if (audioContext && audioContext.state === 'running') {
-                audioContext.close();
+        // ==================== 清除當前檔案 ====================
+        function clearCurrentFile() {
+            if (currentFile && fileStore[currentFile]) {
+                fileStore[currentFile].events = [];
+                events = [];
+                renderEvents();
+                drawWaveform(audioData, sampleRate);
+                updateStats();
+                updateFileTabs();
+                fileEventCount.textContent = '';
+                statusText.textContent = `🗑️ 已清除 ${currentFile} 的事件`;
+                statusText.className = 'status-text';
+                exportSection.style.display = 'none';
+                statsGrid.style.display = 'none';
             }
-        }
-        
-        function clearAll() {
-            events = [];
-            eventList.innerHTML = '<div style="text-align:center; padding: 40px; color: #999;">尚未檢測到任何事件</div>';
-            eventCount.textContent = '(0)';
-            exportSection.style.display = 'none';
-            playerContainer.classList.remove('active');
-            drawWaveform(audioData || new Float32Array(1000), sampleRate);
-            statusText.textContent = '🗑️ 已清除所有事件';
         }
         
         // ==================== 工具函數 ====================
@@ -1071,7 +1543,6 @@
             const wav = new ArrayBuffer(totalLength);
             const view = new DataView(wav);
             
-            // RIFF header
             writeString(view, 0, 'RIFF');
             view.setUint32(4, totalLength - 8, true);
             writeString(view, 8, 'WAVE');
@@ -1086,7 +1557,6 @@
             writeString(view, 36, 'data');
             view.setUint32(40, dataLength, true);
             
-            // 寫入數據
             for (let i = 0; i < buffer.length; i++) {
                 const sample = Math.max(-1, Math.min(1, buffer[i]));
                 const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
@@ -1104,26 +1574,27 @@
         
         // ==================== 鍵盤快捷鍵 ====================
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft') {
-                playPrevious();
-            } else if (e.key === 'ArrowRight') {
-                playNext();
-            } else if (e.key === 'Enter' && events.length > 0) {
-                playEvent(currentEventIndex >= 0 ? currentEventIndex : 0);
-            } else if (e.key === 'Escape') {
-                closePlayer();
+            if (e.key === 'ArrowLeft') { playPrevious(); e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { playNext(); e.preventDefault(); }
+            else if (e.key === 'Enter' && events.length > 0) { 
+                playEvent(currentEventIndex >= 0 ? currentEventIndex : 0); 
+                e.preventDefault();
             }
+            else if (e.key === 'Escape') { closePlayer(); }
+            else if (e.key === 'd' || e.key === 'D') { ultraSensitiveDetect(); }
         });
         
-        // ==================== 響應式調整 ====================
+        // ==================== 響應式 ====================
         window.addEventListener('resize', function() {
             if (audioData) {
                 drawWaveform(audioData, sampleRate);
             }
         });
         
-        console.log('🎵 音頻事件分類器已載入');
-        console.log('💡 快捷鍵: ← 上一個事件 | → 下一個事件 | Enter 播放 | Esc 關閉');
+        console.log('🔊 超極致靈敏音頻檢測器 v2.0 已載入');
+        console.log('💡 靈敏度可低至 0.01，最短事件可達 0.001 秒');
+        console.log('📁 支援多檔案同時載入與管理');
+        console.log('⌨️ 快捷鍵: ← 上一個 | → 下一個 | Enter 播放 | Esc 關閉 | D 檢測');
     </script>
 </body>
 </html>
