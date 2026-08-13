@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>專業呼吸音分類器 - 完整版</title>
+    <title>自定義呼吸音分類器 - 可訓練版</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     
@@ -16,7 +16,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: linear-gradient(135deg, #0c0c1d 0%, #1a1a2e 50%, #16213e 100%);
             min-height: 100vh;
             padding: 20px;
             color: #e0e0e0;
@@ -25,57 +25,227 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
+        }
+
+        /* 標題 */
+        .header {
             background: rgba(255,255,255,0.05);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        h1 {
-            color: #fff;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-size: 32px;
-        }
-
-        .subtitle {
-            color: #aaa;
             margin-bottom: 30px;
-            font-size: 16px;
-        }
-
-        /* 頂部工具欄 */
-        .toolbar {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.08);
         }
 
-        .toolbar button {
-            padding: 10px 20px;
+        .header h1 {
+            font-size: 32px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header .subtitle {
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        /* 標籤頁 */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 5px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .tab {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: transparent;
+            color: #888;
+            flex: 1;
+            text-align: center;
+        }
+
+        .tab:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 通用卡片 */
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .card h3 {
+            color: #fff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 上傳區域 */
+        .upload-zone {
+            border: 3px dashed rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-zone:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .upload-zone.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .upload-zone .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        /* 樣本列表 */
+        .sample-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .sample-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s;
+        }
+
+        .sample-item:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .sample-item .name {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .sample-item .meta {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .sample-item .label-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .label-badge.breath {
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+            border: 1px solid rgba(72, 187, 120, 0.3);
+        }
+
+        .label-badge.non-breath {
+            background: rgba(252, 129, 129, 0.2);
+            color: #fc8181;
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+
+        .sample-item .actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .sample-item .actions button {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-play {
+            background: rgba(99, 179, 237, 0.2);
+            color: #63b3ed;
+            border: 1px solid rgba(99, 179, 237, 0.3);
+        }
+
+        .btn-play:hover {
+            background: rgba(99, 179, 237, 0.3);
+        }
+
+        .btn-delete {
+            background: rgba(252, 129, 129, 0.2);
+            color: #fc8181;
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+
+        .btn-delete:hover {
+            background: rgba(252, 129, 129, 0.3);
+        }
+
+        /* 按鈕 */
+        .btn {
+            padding: 10px 25px;
             border: none;
             border-radius: 8px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
+            color: #fff;
         }
 
         .btn-primary:hover {
@@ -85,7 +255,7 @@
 
         .btn-success {
             background: linear-gradient(135deg, #48bb78, #38a169);
-            color: white;
+            color: #fff;
         }
 
         .btn-success:hover {
@@ -95,7 +265,7 @@
 
         .btn-danger {
             background: linear-gradient(135deg, #fc8181, #e53e3e);
-            color: white;
+            color: #fff;
         }
 
         .btn-danger:hover {
@@ -105,7 +275,7 @@
 
         .btn-warning {
             background: linear-gradient(135deg, #f6ad55, #ed8936);
-            color: white;
+            color: #fff;
         }
 
         .btn-warning:hover {
@@ -115,7 +285,7 @@
 
         .btn-info {
             background: linear-gradient(135deg, #63b3ed, #4299e1);
-            color: white;
+            color: #fff;
         }
 
         .btn-info:hover {
@@ -129,127 +299,58 @@
             transform: none !important;
         }
 
-        /* 上傳區域 */
-        .upload-section {
-            border: 3px dashed rgba(255,255,255,0.2);
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            transition: all 0.3s;
-            cursor: pointer;
-            background: rgba(255,255,255,0.03);
-            margin-bottom: 30px;
+        .btn-sm {
+            padding: 6px 15px;
+            font-size: 12px;
         }
 
-        .upload-section:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
-        }
-
-        .upload-section.dragover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .upload-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
-        }
-
-        .file-list {
-            margin: 15px 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .file-tag {
-            background: rgba(102, 126, 234, 0.2);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid rgba(102, 126, 234, 0.3);
-        }
-
-        .file-tag .remove {
-            cursor: pointer;
-            color: #fc8181;
-            font-weight: bold;
-        }
-
-        /* 控制面板 */
-        .controls {
+        /* 統計 */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.08);
+            margin: 15px 0;
         }
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .control-group label {
-            font-weight: 600;
-            color: #ccc;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .control-group input, .control-group select {
-            padding: 8px 12px;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 6px;
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            font-size: 14px;
-        }
-
-        .control-group input:focus, .control-group select:focus {
-            border-color: #667eea;
-            outline: none;
-        }
-
-        .control-group input[type="range"] {
-            padding: 0;
-            accent-color: #667eea;
-        }
-
-        .range-value {
-            color: #667eea;
+        .stat-box .number {
+            font-size: 28px;
             font-weight: 700;
-            font-size: 18px;
+            color: #fff;
         }
 
-        /* 進度條 */
-        .progress-container {
+        .stat-box .label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .stat-box.breath .number { color: #48bb78; }
+        .stat-box.non-breath .number { color: #fc8181; }
+        .stat-box.total .number { color: #63b3ed; }
+
+        /* 訓練進度 */
+        .training-progress {
             display: none;
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
+            margin-top: 15px;
         }
 
-        .progress-bar {
+        .training-progress .bar {
             width: 100%;
-            height: 30px;
+            height: 20px;
             background: rgba(255,255,255,0.1);
-            border-radius: 15px;
+            border-radius: 10px;
             overflow: hidden;
-            position: relative;
         }
 
-        .progress-fill {
+        .training-progress .bar .fill {
             height: 100%;
             background: linear-gradient(90deg, #667eea, #764ba2);
             width: 0%;
@@ -257,286 +358,101 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        /* 結果區域 */
-        .results-container {
-            margin-top: 30px;
-            display: none;
-        }
-
-        .result-card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-left: 5px solid #667eea;
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .result-filename {
-            font-weight: 600;
-            font-size: 20px;
-            color: #fff;
-        }
-
-        .result-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .result-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .stat-item {
-            background: rgba(255,255,255,0.05);
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .stat-item .label {
-            font-size: 11px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-item .value {
-            font-size: 22px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .stat-item .value.breath {
-            color: #48bb78;
-        }
-
-        .stat-item .value.non-breath {
-            color: #fc8181;
-        }
-
-        .stat-item .value.info {
-            color: #63b3ed;
-        }
-
-        /* 片段列表 */
-        .segment-list {
-            max-height: 500px;
-            overflow-y: auto;
-            margin-top: 15px;
-        }
-
-        .segment-item {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            gap: 15px;
-            padding: 10px 15px;
-            margin: 4px 0;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.03);
-            font-size: 14px;
-            align-items: center;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        .segment-item:hover {
-            background: rgba(255,255,255,0.08);
-        }
-
-        .segment-item.breath {
-            border-left: 4px solid #48bb78;
-        }
-
-        .segment-item.non-breath {
-            border-left: 4px solid #fc8181;
-        }
-
-        .segment-time {
-            color: #aaa;
-            font-size: 13px;
-            min-width: 120px;
-        }
-
-        .segment-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .badge-breath {
-            background: rgba(72, 187, 120, 0.2);
-            color: #48bb78;
-            border: 1px solid rgba(72, 187, 120, 0.3);
-        }
-
-        .badge-non-breath {
-            background: rgba(252, 129, 129, 0.2);
-            color: #fc8181;
-            border: 1px solid rgba(252, 129, 129, 0.3);
-        }
-
-        .badge-unknown {
-            background: rgba(255, 255, 255, 0.1);
-            color: #aaa;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .sound-type {
             font-size: 12px;
-            color: #aaa;
-            padding: 2px 10px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.05);
+            color: #fff;
         }
 
-        .confidence-bar {
-            width: 120px;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-            overflow: hidden;
-            display: inline-block;
+        /* 音頻播放器 */
+        .audio-player {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
         }
 
-        .confidence-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.5s;
+        .audio-player audio {
+            width: 100%;
+            border-radius: 4px;
         }
 
-        .confidence-fill.high {
-            background: #48bb78;
-        }
-
-        .confidence-fill.medium {
-            background: #f6ad55;
-        }
-
-        .confidence-fill.low {
-            background: #fc8181;
-        }
-
-        /* 標籤工具 */
-        .tagging-tools {
+        .audio-player .controls {
             display: flex;
             gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        /* 結果播放 */
+        .segment-player {
+            display: flex;
+            gap: 10px;
+            align-items: center;
             flex-wrap: wrap;
-            margin: 10px 0;
+        }
+
+        .segment-player button {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            background: rgba(99, 179, 237, 0.2);
+            color: #63b3ed;
+            border: 1px solid rgba(99, 179, 237, 0.3);
+        }
+
+        .segment-player button:hover {
+            background: rgba(99, 179, 237, 0.3);
+        }
+
+        /* 訓練狀態 */
+        .training-status {
             padding: 15px;
-            background: rgba(255,255,255,0.03);
             border-radius: 8px;
+            margin: 10px 0;
+            background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .tagging-tools button {
-            padding: 6px 15px;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .tag-breath {
-            background: rgba(72, 187, 120, 0.2);
-            color: #48bb78;
-            border: 1px solid rgba(72, 187, 120, 0.3);
-        }
-
-        .tag-breath:hover {
-            background: rgba(72, 187, 120, 0.3);
-        }
-
-        .tag-non-breath {
-            background: rgba(252, 129, 129, 0.2);
-            color: #fc8181;
-            border: 1px solid rgba(252, 129, 129, 0.3);
-        }
-
-        .tag-non-breath:hover {
-            background: rgba(252, 129, 129, 0.3);
-        }
-
-        .tag-clear {
-            background: rgba(255,255,255,0.05);
+        .training-status .info {
             color: #aaa;
-            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
         }
 
-        .tag-clear:hover {
-            background: rgba(255,255,255,0.1);
+        .training-status .info strong {
+            color: #fff;
         }
 
-        /* 聲音類型標籤 */
-        .sound-type-tags {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-            margin-top: 5px;
+        /* 滾動條 */
+        ::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .sound-tag {
-            padding: 2px 10px;
-            border-radius: 10px;
-            font-size: 11px;
+        ::-webkit-scrollbar-track {
             background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #ccc;
+            border-radius: 3px;
         }
 
-        /* 匯出功能 */
-        .export-section {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.08);
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 3px;
         }
 
-        .export-section textarea {
-            width: 100%;
-            min-height: 150px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: #e0e0e0;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            resize: vertical;
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.5);
         }
 
-        /* 模態框 */
-        .modal {
+        /* 響應式 */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 24px; }
+            .tabs { flex-wrap: wrap; }
+            .tab { flex: 1 1 auto; font-size: 13px; padding: 10px 15px; }
+            .sample-list { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* 彈窗 */
+        .modal-overlay {
             display: none;
             position: fixed;
             z-index: 1000;
@@ -548,265 +464,382 @@
             backdrop-filter: blur(5px);
         }
 
-        .modal-content {
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-box {
             background: #1a1a2e;
-            margin: 5% auto;
-            padding: 30px;
             border-radius: 16px;
-            max-width: 800px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
             max-height: 80vh;
             overflow-y: auto;
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .modal-header {
+        .modal-box .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            background: none;
+            padding: 0;
+            border: none;
         }
 
-        .modal-close {
+        .modal-box .header h3 {
+            color: #fff;
+            margin: 0;
+        }
+
+        .modal-box .close {
             background: none;
             border: none;
-            color: #fff;
+            color: #888;
             font-size: 28px;
             cursor: pointer;
         }
 
-        .modal-close:hover {
+        .modal-box .close:hover {
             color: #fc8181;
-        }
-
-        /* 滾動條美化 */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(102, 126, 234, 0.3);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(102, 126, 234, 0.5);
-        }
-
-        /* 響應式 */
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .controls {
-                grid-template-columns: 1fr;
-            }
-            
-            .segment-item {
-                grid-template-columns: 1fr;
-                gap: 5px;
-            }
-            
-            .result-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* 動畫 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .result-card {
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        /* 狀態指示器 */
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .status-ready {
-            background: #48bb78;
-        }
-
-        .status-loading {
-            background: #f6ad55;
-            animation: pulse 1s infinite;
-        }
-
-        .status-error {
-            background: #fc8181;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🫁 專業呼吸音分類器</h1>
-        <p class="subtitle">自動分類呼吸聲與非呼吸聲，支援標籤、匯出、聲音類型識別</p>
-
-        <!-- 工具欄 -->
-        <div class="toolbar">
-            <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
-                📁 上傳音檔
-            </button>
-            <button class="btn-success" id="classifyBtn" onclick="classifyFiles()">
-                🚀 開始分類
-            </button>
-            <button class="btn-info" onclick="exportAllResults()">
-                📊 匯出報告
-            </button>
-            <button class="btn-warning" onclick="exportSegmentsCSV()">
-                📋 匯出CSV
-            </button>
-            <button class="btn-danger" onclick="clearAll()">
-                🗑️ 清空全部
-            </button>
-            <button class="btn-info" onclick="showTaggingGuide()">
-                📖 標籤指南
-            </button>
-        </div>
-
-        <input type="file" id="fileInput" multiple accept=".wav,.mp3,.m4a,.flac,.aac,.ogg" style="display:none;">
-
-        <!-- 上傳區域 -->
-        <div class="upload-section" id="uploadSection">
-            <div class="upload-icon">🎵</div>
-            <h3 style="color:#fff;">拖曳音檔到這裡，或點擊上傳</h3>
-            <p style="color:#888; margin:10px 0;">支援 WAV, MP3, M4A, FLAC, AAC, OGG</p>
-            <div class="file-list" id="fileList"></div>
-        </div>
-
-        <!-- 控制面板 -->
-        <div class="controls">
-            <div class="control-group">
-                <label>片段長度</label>
-                <select id="segmentDuration">
-                    <option value="0.25">0.25 秒</option>
-                    <option value="0.5" selected>0.5 秒 (推薦)</option>
-                    <option value="1.0">1.0 秒</option>
-                    <option value="2.0">2.0 秒</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label>分類閾值</label>
-                <input type="range" id="threshold" min="0" max="1" step="0.05" value="0.5">
-                <span class="range-value" id="thresholdValue">0.50</span>
-            </div>
-            <div class="control-group">
-                <label>最低信心度</label>
-                <input type="range" id="minConfidence" min="0" max="1" step="0.05" value="0.3">
-                <span class="range-value" id="minConfidenceValue">0.30</span>
-            </div>
-            <div class="control-group">
-                <label>過濾模式</label>
-                <select id="filterMode">
-                    <option value="all">顯示全部</option>
-                    <option value="breath">僅顯示呼吸聲</option>
-                    <option value="non-breath">僅顯示非呼吸聲</option>
-                    <option value="high-confidence">高信心度 (>0.7)</option>
-                </select>
+        <!-- 標題 -->
+        <div class="header">
+            <h1>🫁 自定義呼吸音分類器</h1>
+            <div class="subtitle">上傳您的裝置呼吸音樣本 → 訓練模型 → 分類新音檔</div>
+            <div style="margin-top:10px;padding:10px 15px;background:rgba(255,215,0,0.1);border-radius:8px;border:1px solid rgba(255,215,0,0.2);">
+                ⚠️ <strong style="color:#f6ad55;">重要：</strong>請先上傳您的裝置呼吸音樣本（吸氣/呼氣聲），訓練模型後才能準確分類！
             </div>
         </div>
 
-        <!-- 進度條 -->
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill">0%</div>
-            </div>
-            <p style="margin-top: 10px; color: #aaa;" id="progressText">準備中...</p>
+        <!-- 標籤頁 -->
+        <div class="tabs">
+            <button class="tab active" data-tab="tab-train" onclick="switchTab('tab-train')">
+                📚 訓練樣本
+            </button>
+            <button class="tab" data-tab="tab-classify" onclick="switchTab('tab-classify')">
+                🎯 分類音檔
+            </button>
+            <button class="tab" data-tab="tab-results" onclick="switchTab('tab-results')">
+                📊 分類結果
+            </button>
         </div>
 
-        <!-- 結果區域 -->
-        <div class="results-container" id="resultsContainer">
-            <h2 style="color:#fff; margin-bottom:20px;">📊 分類結果</h2>
-            <div id="resultsList"></div>
+        <!-- ============================================ -->
+        <!-- 標籤頁 1: 訓練樣本 -->
+        <!-- ============================================ -->
+        <div id="tab-train" class="tab-content active">
+            <div class="card">
+                <h3>📤 上傳訓練樣本</h3>
+                <p style="color:#aaa;margin-bottom:15px;">上傳您的裝置呼吸音（吸氣/呼氣聲）作為訓練樣本</p>
+                
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+                    <div class="upload-zone" id="breathDropZone" onclick="document.getElementById('breathInput').click()">
+                        <div class="icon">🟢</div>
+                        <div style="color:#48bb78;font-weight:600;">上傳呼吸聲樣本</div>
+                        <div style="color:#888;font-size:13px;">吸氣、呼氣聲音</div>
+                        <input type="file" id="breathInput" multiple accept=".wav,.mp3,.m4a,.flac" style="display:none;">
+                    </div>
+                    <div class="upload-zone" id="nonBreathDropZone" onclick="document.getElementById('nonBreathInput').click()">
+                        <div class="icon">🔴</div>
+                        <div style="color:#fc8181;font-weight:600;">上傳非呼吸聲樣本</div>
+                        <div style="color:#888;font-size:13px;">環境音、噪音、語音等</div>
+                        <input type="file" id="nonBreathInput" multiple accept=".wav,.mp3,.m4a,.flac" style="display:none;">
+                    </div>
+                </div>
+
+                <!-- 樣本統計 -->
+                <div class="stats-grid">
+                    <div class="stat-box breath">
+                        <div class="number" id="breathCount">0</div>
+                        <div class="label">呼吸聲樣本</div>
+                    </div>
+                    <div class="stat-box non-breath">
+                        <div class="number" id="nonBreathCount">0</div>
+                        <div class="label">非呼吸聲樣本</div>
+                    </div>
+                    <div class="stat-box total">
+                        <div class="number" id="totalSamples">0</div>
+                        <div class="label">總樣本數</div>
+                    </div>
+                </div>
+
+                <!-- 樣本列表 -->
+                <div id="sampleListContainer">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px;">
+                        <span style="color:#aaa;font-size:14px;">已上傳樣本</span>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <button class="btn btn-danger btn-sm" onclick="clearAllSamples()">🗑️ 清除全部</button>
+                        </div>
+                    </div>
+                    <div class="sample-list" id="sampleList"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🧠 訓練模型</h3>
+                <p style="color:#aaa;margin-bottom:15px;">使用上傳的樣本訓練分類模型</p>
+                
+                <div style="display:flex;gap:15px;flex-wrap:wrap;align-items:center;">
+                    <div>
+                        <label style="color:#aaa;font-size:13px;">訓練輪數</label>
+                        <input type="number" id="epochs" value="50" min="10" max="500" 
+                               style="padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;width:80px;">
+                    </div>
+                    <div>
+                        <label style="color:#aaa;font-size:13px;">批次大小</label>
+                        <input type="number" id="batchSize" value="16" min="4" max="64" 
+                               style="padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;width:80px;">
+                    </div>
+                    <button class="btn btn-success" id="trainBtn" onclick="trainModel()">
+                        🚀 開始訓練
+                    </button>
+                    <button class="btn btn-info" onclick="saveModel()">
+                        💾 儲存模型
+                    </button>
+                    <button class="btn btn-warning" onclick="loadModel()">
+                        📂 載入模型
+                    </button>
+                </div>
+
+                <div class="training-progress" id="trainingProgress">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                        <span style="color:#aaa;" id="trainingStatus">訓練中...</span>
+                        <span style="color:#aaa;" id="trainingEpoch">0/0</span>
+                    </div>
+                    <div class="bar">
+                        <div class="fill" id="trainingBar">0%</div>
+                    </div>
+                    <div style="margin-top:10px;color:#aaa;font-size:13px;" id="trainingMetrics"></div>
+                </div>
+
+                <div class="training-status" id="modelStatus">
+                    <div class="info">
+                        📌 模型狀態：<strong id="modelReadyStatus">未訓練</strong>
+                        <span id="modelAccuracy" style="margin-left:15px;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- 標籤頁 2: 分類音檔 -->
+        <!-- ============================================ -->
+        <div id="tab-classify" class="tab-content">
+            <div class="card">
+                <h3>🎯 上傳要分類的音檔</h3>
+                <div class="upload-zone" id="classifyDropZone" onclick="document.getElementById('classifyInput').click()">
+                    <div class="icon">📁</div>
+                    <div style="color:#fff;font-weight:600;">拖曳或點擊上傳音檔</div>
+                    <div style="color:#888;font-size:13px;">支援 WAV, MP3, M4A, FLAC</div>
+                    <input type="file" id="classifyInput" multiple accept=".wav,.mp3,.m4a,.flac" style="display:none;">
+                </div>
+
+                <div style="margin-top:15px;display:flex;gap:15px;flex-wrap:wrap;align-items:center;">
+                    <div>
+                        <label style="color:#aaa;font-size:13px;">片段長度</label>
+                        <select id="segDuration" style="padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;">
+                            <option value="0.25">0.25 秒</option>
+                            <option value="0.5" selected>0.5 秒</option>
+                            <option value="1.0">1.0 秒</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="color:#aaa;font-size:13px;">分類閾值</label>
+                        <input type="range" id="classifyThreshold" min="0" max="1" step="0.05" value="0.5" style="width:150px;">
+                        <span id="classifyThresholdVal" style="color:#667eea;">0.50</span>
+                    </div>
+                    <button class="btn btn-primary" id="classifyBtn" onclick="classifyFiles()">
+                        🔍 開始分類
+                    </button>
+                </div>
+
+                <div style="margin-top:15px;" id="classifyFileList"></div>
+            </div>
+
+            <div class="card" id="classifyProgressCard" style="display:none;">
+                <h3>⏳ 分類進度</h3>
+                <div class="progress-bar" style="width:100%;height:20px;background:rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;">
+                    <div class="progress-fill" id="classifyProgress" style="width:0%;height:100%;background:linear-gradient(90deg,#667eea,#764ba2);transition:width 0.3s;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;">0%</div>
+                </div>
+                <div style="margin-top:10px;color:#aaa;" id="classifyProgressText">準備中...</div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- 標籤頁 3: 分類結果 -->
+        <!-- ============================================ -->
+        <div id="tab-results" class="tab-content">
+            <div id="resultsContainer">
+                <div style="text-align:center;padding:60px 20px;color:#888;">
+                    <div style="font-size:50px;margin-bottom:20px;">📭</div>
+                    <div>尚未有分類結果</div>
+                    <div style="font-size:13px;margin-top:10px;">請先到「分類音檔」頁面上傳並分類</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- 標籤指南模態框 -->
-    <div class="modal" id="taggingGuideModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 style="color:#fff;">📖 標籤與聲音類型指南</h2>
-                <button class="modal-close" onclick="closeModal('taggingGuideModal')">&times;</button>
+    <!-- 音頻播放彈窗 -->
+    <div class="modal-overlay" id="audioModal">
+        <div class="modal-box">
+            <div class="header">
+                <h3>🎵 播放音頻片段</h3>
+                <button class="close" onclick="closeAudioModal()">&times;</button>
             </div>
-            <div style="color:#ccc; line-height:1.8;">
-                <h3 style="color:#48bb78; margin:15px 0 10px 0;">✅ 呼吸聲特徵</h3>
-                <ul>
-                    <li>🔹 週期性、規律的吸氣/呼氣聲</li>
-                    <li>🔹 頻率範圍：通常 100-400 Hz</li>
-                    <li>🔹 波形：平滑的振幅變化</li>
-                    <li>🔹 持續時間：0.5-2 秒</li>
-                    <li>🔹 典型例子：深呼吸、正常呼吸、喘息</li>
-                </ul>
-
-                <h3 style="color:#fc8181; margin:20px 0 10px 0;">❌ 非呼吸聲類型</h3>
-                <ul>
-                    <li><strong>🗣️ 語音</strong> - 人聲說話、唱歌 (頻率範圍廣，有諧波結構)</li>
-                    <li><strong>🔊 環境噪音</strong> - 風扇、空調、交通聲 (持續性噪聲)</li>
-                    <li><strong>💥 衝擊聲</strong> - 敲擊、關門、腳步聲 (短暫高振幅)</li>
-                    <li><strong>🎵 音樂</strong> - 樂器、背景音樂 (有節奏和旋律)</li>
-                    <li><strong>📱 電子聲</strong> - 鈴聲、通知聲 (特定頻率)</li>
-                    <li><strong>🌊 自然聲</strong> - 風聲、雨聲、水流聲 (隨機噪聲)</li>
-                    <li><strong>🩺 醫療設備</strong> - 機器運轉聲、警報聲</li>
-                </ul>
-
-                <h3 style="color:#63b3ed; margin:20px 0 10px 0;">🏷️ 標籤操作說明</h3>
-                <ul>
-                    <li>點擊片段可以切換標籤 (呼吸/非呼吸)</li>
-                    <li>使用批量標籤工具可以快速標記多個片段</li>
-                    <li>標籤後會自動更新統計數據</li>
-                    <li>可以匯出標籤報告進行複查</li>
-                </ul>
+            <div class="audio-player" id="audioPlayerContainer">
+                <audio controls id="audioPlayer" style="width:100%;"></audio>
+                <div style="margin-top:10px;color:#aaa;font-size:14px;" id="audioInfo">載入中...</div>
             </div>
         </div>
     </div>
 
     <script>
         // ============================================
-        // 核心分類器
+        // 完整的分類器系統
         // ============================================
-        class BreathClassifier {
+        class CustomBreathClassifier {
             constructor() {
                 this.model = null;
-                this.isReady = false;
+                this.isTrained = false;
                 this.sampleRate = 22050;
-                this.nMfcc = 13;
+                this.nFeatures = 20;
                 this.segmentDuration = 0.5;
                 this.threshold = 0.5;
-                this.labelMap = {0: 'non-breath', 1: 'breath'};
                 
-                // 聲音類型關鍵詞
-                this.soundTypes = {
-                    'speech': { keywords: ['人聲', '說話', '語音'], color: '#63b3ed' },
-                    'noise': { keywords: ['噪音', '風扇', '空調'], color: '#a0aec0' },
-                    'impact': { keywords: ['敲擊', '碰撞', '腳步'], color: '#fc8181' },
-                    'music': { keywords: ['音樂', '旋律', '節奏'], color: '#f6ad55' },
-                    'electronic': { keywords: ['電子', '鈴聲', '通知'], color: '#b794f4' },
-                    'nature': { keywords: ['風聲', '雨聲', '水流'], color: '#68d391' },
-                    'medical': { keywords: ['醫療', '設備', '警報'], color: '#f687b3' }
-                };
+                // 樣本儲存
+                this.samples = [];
+                this.labels = [];
+                
+                // 訓練歷史
+                this.trainingHistory = null;
+                this.accuracy = 0;
             }
 
-            async buildModel() {
+            // 提取音頻特徵
+            async extractFeatures(audioData) {
+                const features = [];
+                const stepSize = Math.floor(this.sampleRate * this.segmentDuration);
+                const hopSize = Math.floor(stepSize / 2);
+                
+                for (let i = 0; i < audioData.length - stepSize; i += hopSize) {
+                    const seg = audioData.slice(i, i + stepSize);
+                    
+                    // 多種特徵提取
+                    const rms = Math.sqrt(seg.reduce((s, v) => s + v * v, 0) / seg.length);
+                    const mean = seg.reduce((s, v) => s + v, 0) / seg.length;
+                    const maxVal = Math.max(...seg.map(Math.abs));
+                    const minVal = Math.min(...seg.map(Math.abs));
+                    const std = Math.sqrt(seg.reduce((s, v) => s + (v - mean) ** 2, 0) / seg.length);
+                    
+                    // 過零率
+                    let zeroCross = 0;
+                    for (let j = 1; j < seg.length; j++) {
+                        if ((seg[j] > 0 && seg[j-1] < 0) || (seg[j] < 0 && seg[j-1] > 0)) {
+                            zeroCross++;
+                        }
+                    }
+                    zeroCross /= seg.length;
+                    
+                    // 頻域特徵 (簡化FFT)
+                    const fftSize = 128;
+                    const fft = new Float32Array(fftSize);
+                    for (let j = 0; j < Math.min(seg.length, fftSize); j++) {
+                        fft[j] = seg[j] * Math.sin(j * 0.1);
+                    }
+                    
+                    // 頻譜質心 (簡化)
+                    let spectralCentroid = 0;
+                    let totalEnergy = 0;
+                    for (let j = 0; j < fft.length; j++) {
+                        const energy = fft[j] * fft[j];
+                        spectralCentroid += j * energy;
+                        totalEnergy += energy;
+                    }
+                    if (totalEnergy > 0) spectralCentroid /= totalEnergy;
+                    
+                    // 組合特徵
+                    const featureVec = [
+                        rms, mean, maxVal, minVal, std, zeroCross,
+                        spectralCentroid / fftSize,
+                        ...Array.from(fft.slice(0, 13))
+                    ];
+                    
+                    // 填充到固定維度
+                    while (featureVec.length < this.nFeatures) {
+                        featureVec.push(0);
+                    }
+                    
+                    features.push(featureVec.slice(0, this.nFeatures));
+                }
+                
+                return features;
+            }
+
+            // 從音檔提取特徵並標記
+            async extractFeaturesFromFile(file, label) {
+                const audioData = await this.decodeAudio(file);
+                const features = await this.extractFeatures(audioData);
+                
+                // 每個片段都標記為相同標籤
+                for (const feat of features) {
+                    this.samples.push(feat);
+                    this.labels.push(label);
+                }
+                
+                return features.length;
+            }
+
+            // 解碼音頻
+            async decodeAudio(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            const buffer = await audioContext.decodeAudioData(e.target.result);
+                            const data = buffer.getChannelData(0);
+                            
+                            // 重採樣到目標採樣率
+                            if (buffer.sampleRate !== this.sampleRate) {
+                                const ratio = buffer.sampleRate / this.sampleRate;
+                                const newLen = Math.floor(data.length / ratio);
+                                const resampled = new Float32Array(newLen);
+                                for (let i = 0; i < newLen; i++) {
+                                    const pos = i * ratio;
+                                    const idx = Math.floor(pos);
+                                    const frac = pos - idx;
+                                    if (idx + 1 < data.length) {
+                                        resampled[i] = data[idx] * (1 - frac) + data[idx + 1] * frac;
+                                    } else {
+                                        resampled[i] = data[idx];
+                                    }
+                                }
+                                resolve(resampled);
+                            } else {
+                                resolve(data);
+                            }
+                        } catch (e) {
+                            reject(e);
+                        }
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            // 構建模型
+            buildModel() {
                 const model = tf.sequential();
-                model.add(tf.layers.dense({ units: 128, activation: 'relu', inputShape: [this.nMfcc] }));
+                model.add(tf.layers.dense({ units: 128, activation: 'relu', inputShape: [this.nFeatures] }));
                 model.add(tf.layers.dropout({ rate: 0.3 }));
                 model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
                 model.add(tf.layers.dropout({ rate: 0.3 }));
@@ -816,150 +849,139 @@
                 return model;
             }
 
-            async initialize() {
-                try {
-                    this.model = await this.buildModel();
-                    await this.loadPretrainedWeights();
-                    this.isReady = true;
-                    return true;
-                } catch (error) {
-                    console.error('模型初始化失敗:', error);
-                    return false;
+            // 訓練模型
+            async train(epochs = 50, batchSize = 16) {
+                if (this.samples.length < 10) {
+                    throw new Error('樣本數量不足，請至少上傳 10 個樣本片段');
                 }
-            }
 
-            async loadPretrainedWeights() {
-                // 示範模型 - 實際應用請載入真實權重
-                console.log('使用示範模型');
-            }
+                // 準備數據
+                const X = tf.tensor2d(this.samples);
+                const y = tf.tensor1d(this.labels);
 
-            async extractFeatures(audioData) {
-                const features = [];
-                const stepSize = Math.floor(this.sampleRate * this.segmentDuration);
-                const hopSize = Math.floor(stepSize / 2);
-                
-                for (let i = 0; i < audioData.length - stepSize; i += hopSize) {
-                    const segment = audioData.slice(i, i + stepSize);
-                    
-                    // 計算多種特徵
-                    const rms = Math.sqrt(segment.reduce((sum, val) => sum + val * val, 0) / segment.length);
-                    const mean = segment.reduce((sum, val) => sum + val, 0) / segment.length;
-                    const maxVal = Math.max(...segment.map(Math.abs));
-                    const zeroCrossing = segment.reduce((sum, val, idx) => {
-                        if (idx > 0 && ((val > 0 && segment[idx-1] < 0) || (val < 0 && segment[idx-1] > 0))) {
-                            return sum + 1;
+                // 分割訓練/驗證
+                const splitIdx = Math.floor(X.shape[0] * 0.8);
+                const X_train = X.slice([0, 0], [splitIdx, -1]);
+                const y_train = y.slice([0], [splitIdx]);
+                const X_val = X.slice([splitIdx, 0], [-1, -1]);
+                const y_val = y.slice([splitIdx], [-1]);
+
+                // 構建模型
+                this.model = this.buildModel();
+
+                // 訓練
+                this.trainingHistory = await this.model.fit(X_train, y_train, {
+                    epochs: epochs,
+                    batchSize: batchSize,
+                    validationData: [X_val, y_val],
+                    callbacks: {
+                        onEpochEnd: (epoch, logs) => {
+                            this.updateTrainingProgress(epoch, epochs, logs);
                         }
-                        return sum;
-                    }, 0) / segment.length;
-                    
-                    // 頻域特徵 (簡化)
-                    const fft = new Float32Array(64);
-                    for (let j = 0; j < Math.min(segment.length, 64); j++) {
-                        fft[j] = segment[j] * Math.sin(j * 0.1);
                     }
-                    
-                    const featureVector = [
-                        rms,
-                        mean,
-                        maxVal,
-                        zeroCrossing,
-                        ...Array.from(fft.slice(0, 10))
-                    ];
-                    
-                    while (featureVector.length < this.nMfcc) {
-                        featureVector.push(0);
-                    }
-                    
-                    features.push(featureVector.slice(0, this.nMfcc));
-                }
-                
-                return features;
+                });
+
+                // 計算準確率
+                const evalResult = this.model.evaluate(X_val, y_val);
+                this.accuracy = evalResult[1].dataSync()[0];
+                this.isTrained = true;
+
+                // 清理記憶體
+                X.dispose();
+                y.dispose();
+                X_train.dispose();
+                y_train.dispose();
+                X_val.dispose();
+                y_val.dispose();
+
+                return this.trainingHistory;
             }
 
-            async predictSegments(audioData) {
-                if (!this.isReady) {
-                    throw new Error('模型尚未準備完成');
+            updateTrainingProgress(epoch, total, logs) {
+                const progress = ((epoch + 1) / total * 100);
+                const bar = document.getElementById('trainingBar');
+                const status = document.getElementById('trainingStatus');
+                const epochInfo = document.getElementById('trainingEpoch');
+                const metrics = document.getElementById('trainingMetrics');
+                
+                if (bar) bar.style.width = progress + '%';
+                if (bar) bar.textContent = Math.round(progress) + '%';
+                if (status) status.textContent = '訓練中...';
+                if (epochInfo) epochInfo.textContent = `${epoch + 1}/${total}`;
+                if (metrics && logs) {
+                    metrics.textContent = `損失: ${logs.loss.toFixed(4)} | 準確率: ${logs.acc.toFixed(4)} | 驗證準確率: ${logs.val_acc?.toFixed(4) || 'N/A'}`;
+                }
+            }
+
+            // 預測
+            async predict(audioData) {
+                if (!this.isTrained || !this.model) {
+                    throw new Error('模型尚未訓練');
                 }
 
                 const features = await this.extractFeatures(audioData);
+                if (features.length === 0) return [];
+
+                const input = tf.tensor2d(features);
+                const predictions = this.model.predict(input);
+                const predArray = await predictions.data();
+                
+                input.dispose();
+                predictions.dispose();
+
                 const stepSize = Math.floor(this.sampleRate * this.segmentDuration);
                 const hopSize = Math.floor(stepSize / 2);
-                
                 const timestamps = [];
                 for (let i = 0; i < features.length; i++) {
                     timestamps.push(i * hopSize / this.sampleRate);
                 }
 
-                if (features.length === 0) {
-                    return [];
-                }
-
-                const inputTensor = tf.tensor2d(features);
-                const predictions = this.model.predict(inputTensor);
-                const predArray = await predictions.data();
-                
-                inputTensor.dispose();
-                predictions.dispose();
-
                 const results = [];
                 for (let i = 0; i < predArray.length; i++) {
                     const confidence = predArray[i];
                     const label = confidence > this.threshold ? 'breath' : 'non-breath';
-                    
-                    // 識別聲音類型
-                    const soundType = this.identifySoundType(features[i]);
-                    
                     results.push({
                         startTime: timestamps[i],
                         endTime: timestamps[i] + this.segmentDuration,
                         label: label,
                         confidence: confidence,
-                        soundType: soundType,
-                        features: features[i],
-                        userLabel: null // 用戶自定義標籤
+                        index: i
                     });
                 }
 
                 return results;
             }
 
-            identifySoundType(features) {
-                // 基於特徵識別聲音類型
-                const rms = features[0];
-                const mean = features[1];
-                const maxVal = features[2];
-                const zeroCrossing = features[3];
-                
-                // 簡單的規則分類
-                if (rms > 0.3 && zeroCrossing < 0.1) {
-                    return 'speech';
-                } else if (rms > 0.5 && maxVal > 0.8) {
-                    return 'impact';
-                } else if (rms > 0.2 && rms < 0.4 && zeroCrossing > 0.2) {
-                    return 'noise';
-                } else if (rms > 0.1 && rms < 0.3 && zeroCrossing < 0.05) {
-                    return 'music';
-                } else if (rms > 0.4 && zeroCrossing > 0.3) {
-                    return 'nature';
-                } else if (rms > 0.3 && maxVal < 0.5) {
-                    return 'electronic';
-                } else {
-                    return 'unknown';
+            // 儲存模型
+            async saveModel() {
+                if (!this.isTrained || !this.model) {
+                    alert('請先訓練模型');
+                    return;
                 }
+                await this.model.save('downloads://breath_classifier_model');
+                alert('模型已下載');
             }
 
-            getSoundTypeLabel(type) {
-                const labels = {
-                    'speech': '🗣️ 語音',
-                    'noise': '🔊 環境噪音',
-                    'impact': '💥 衝擊聲',
-                    'music': '🎵 音樂',
-                    'electronic': '📱 電子聲',
-                    'nature': '🌊 自然聲',
-                    'medical': '🩺 醫療設備',
-                    'unknown': '❓ 未知'
+            // 載入模型
+            async loadModel() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = async (e) => {
+                    try {
+                        const file = e.target.files[0];
+                        const modelJson = await file.text();
+                        const model = await tf.loadLayersModel(tf.io.fromMemory(JSON.parse(modelJson)));
+                        this.model = model;
+                        this.isTrained = true;
+                        document.getElementById('modelReadyStatus').textContent = '✅ 已載入模型';
+                        document.getElementById('modelReadyStatus').style.color = '#48bb78';
+                        alert('模型載入成功！');
+                    } catch (err) {
+                        alert('載入失敗: ' + err.message);
+                    }
                 };
-                return labels[type] || '❓ 未知';
+                input.click();
             }
 
             setThreshold(threshold) {
@@ -969,786 +991,552 @@
             setSegmentDuration(duration) {
                 this.segmentDuration = duration;
             }
-        }
 
-        // ============================================
-        // 音頻處理
-        // ============================================
-        class AudioProcessor {
-            static async decodeAudioFile(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = async (e) => {
-                        try {
-                            const arrayBuffer = e.target.result;
-                            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                            
-                            const sampleRate = 22050;
-                            const rawData = audioBuffer.getChannelData(0);
-                            const resampledData = this.resample(rawData, audioBuffer.sampleRate, sampleRate);
-                            
-                            resolve(resampledData);
-                        } catch (error) {
-                            reject(error);
-                        }
-                    };
-                    reader.onerror = reject;
-                    reader.readAsArrayBuffer(file);
-                });
+            getStats() {
+                const breath = this.labels.filter(l => l === 1).length;
+                const nonBreath = this.labels.filter(l => l === 0).length;
+                return { breath, nonBreath, total: this.samples.length };
             }
 
-            static resample(data, originalRate, targetRate) {
-                if (originalRate === targetRate) return data;
-                
-                const ratio = originalRate / targetRate;
-                const newLength = Math.floor(data.length / ratio);
-                const result = new Float32Array(newLength);
-                
-                for (let i = 0; i < newLength; i++) {
-                    const pos = i * ratio;
-                    const idx = Math.floor(pos);
-                    const frac = pos - idx;
-                    if (idx + 1 < data.length) {
-                        result[i] = data[idx] * (1 - frac) + data[idx + 1] * frac;
-                    } else {
-                        result[i] = data[idx];
-                    }
-                }
-                
-                return result;
-            }
-
-            static getDuration(file) {
-                return new Promise((resolve) => {
-                    const audio = new Audio();
-                    audio.onloadedmetadata = () => {
-                        resolve(audio.duration);
-                        audio.src = '';
-                    };
-                    audio.src = URL.createObjectURL(file);
-                });
+            clearSamples() {
+                this.samples = [];
+                this.labels = [];
+                this.isTrained = false;
+                this.model = null;
+                this.trainingHistory = null;
+                this.accuracy = 0;
             }
         }
 
         // ============================================
         // UI 控制
         // ============================================
-        const classifier = new BreathClassifier();
-        let files = [];
-        let allResults = [];
-        let isProcessing = false;
-        let segmentCounter = 0;
+        const classifier = new CustomBreathClassifier();
+        let classifyResults = [];
 
-        const fileInput = document.getElementById('fileInput');
-        const fileList = document.getElementById('fileList');
-        const uploadSection = document.getElementById('uploadSection');
-        const classifyBtn = document.getElementById('classifyBtn');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressFill = document.getElementById('progressFill');
-        const progressText = document.getElementById('progressText');
-        const resultsContainer = document.getElementById('resultsContainer');
-        const resultsList = document.getElementById('resultsList');
-
-        // 初始化
-        async function init() {
-            try {
-                const success = await classifier.initialize();
-                if (success) {
-                    console.log('✅ 模型已就緒');
-                }
-            } catch (error) {
-                console.error('初始化錯誤:', error);
-            }
+        // 切換標籤頁
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
         }
 
-        // 檔案處理
-        function handleFiles(selectedFiles) {
-            for (const file of selectedFiles) {
-                const validTypes = ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/m4a', 'audio/flac', 'audio/aac', 'audio/ogg'];
-                if (!validTypes.includes(file.type) && !file.name.match(/\.(wav|mp3|m4a|flac|aac|ogg)$/i)) {
-                    continue;
-                }
-                
-                if (!files.some(f => f.name === file.name && f.size === file.size)) {
-                    files.push(file);
-                }
-            }
-            updateFileList();
-        }
+        // ============================================
+        // 樣本管理
+        // ============================================
+        const breathSamples = [];
+        const nonBreathSamples = [];
 
-        function updateFileList() {
-            if (files.length === 0) {
-                fileList.innerHTML = '';
-                return;
+        document.getElementById('breathInput').addEventListener('change', function(e) {
+            handleSampleFiles(e.target.files, 'breath');
+            this.value = '';
+        });
+
+        document.getElementById('nonBreathInput').addEventListener('change', function(e) {
+            handleSampleFiles(e.target.files, 'non-breath');
+            this.value = '';
+        });
+
+        // 拖曳上傳
+        ['breathDropZone', 'nonBreathDropZone', 'classifyDropZone'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('dragover'); });
+            el.addEventListener('dragleave', () => { el.classList.remove('dragover'); });
+            el.addEventListener('drop', (e) => {
+                e.preventDefault();
+                el.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (id === 'breathDropZone') handleSampleFiles(files, 'breath');
+                else if (id === 'nonBreathDropZone') handleSampleFiles(files, 'non-breath');
+                else if (id === 'classifyDropZone') handleClassifyFiles(files);
+            });
+        });
+
+        async function handleSampleFiles(files, label) {
+            const labelNum = label === 'breath' ? 1 : 0;
+            let count = 0;
+            
+            for (const file of files) {
+                try {
+                    const numSegments = await classifier.extractFeaturesFromFile(file, labelNum);
+                    count += numSegments;
+                    
+                    if (label === 'breath') {
+                        breathSamples.push({ file, name: file.name, segments: numSegments });
+                    } else {
+                        nonBreathSamples.push({ file, name: file.name, segments: numSegments });
+                    }
+                } catch (e) {
+                    console.error('處理樣本失敗:', e);
+                    alert(`處理 ${file.name} 失敗: ${e.message}`);
+                }
             }
             
-            fileList.innerHTML = files.map((file, index) => `
-                <div class="file-tag">
-                    🎵 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
-                    <span class="remove" onclick="removeFile(${index})">✕</span>
+            updateSampleUI();
+            document.getElementById('modelReadyStatus').textContent = '⚠️ 需要重新訓練';
+            document.getElementById('modelReadyStatus').style.color = '#f6ad55';
+        }
+
+        function updateSampleUI() {
+            const stats = classifier.getStats();
+            document.getElementById('breathCount').textContent = stats.breath;
+            document.getElementById('nonBreathCount').textContent = stats.nonBreath;
+            document.getElementById('totalSamples').textContent = stats.total;
+
+            // 更新樣本列表
+            const list = document.getElementById('sampleList');
+            const allSamples = [
+                ...breathSamples.map(s => ({ ...s, label: 'breath' })),
+                ...nonBreathSamples.map(s => ({ ...s, label: 'non-breath' }))
+            ];
+
+            if (allSamples.length === 0) {
+                list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">尚無樣本，請上傳音檔</div>';
+                return;
+            }
+
+            list.innerHTML = allSamples.map((s, i) => `
+                <div class="sample-item">
+                    <div class="name">${s.name}</div>
+                    <div class="meta">${s.segments} 個片段</div>
+                    <span class="label-badge ${s.label}">${s.label === 'breath' ? '🟢 呼吸聲' : '🔴 非呼吸聲'}</span>
+                    <div class="actions">
+                        <button class="btn-play" onclick="playSample('${i}')">▶ 播放</button>
+                        <button class="btn-delete" onclick="removeSample('${i}')">✕</button>
+                    </div>
                 </div>
             `).join('');
         }
 
-        function removeFile(index) {
-            files.splice(index, 1);
-            updateFileList();
-            if (files.length === 0) {
-                resultsContainer.style.display = 'none';
+        function removeSample(index) {
+            // 簡單實現：移除對應的樣本
+            const allSamples = [...breathSamples, ...nonBreathSamples];
+            if (index < breathSamples.length) {
+                breathSamples.splice(index, 1);
+            } else {
+                nonBreathSamples.splice(index - breathSamples.length, 1);
+            }
+            // 重建 classifier 的樣本
+            classifier.clearSamples();
+            // 重新加載所有樣本
+            for (const s of breathSamples) {
+                classifier.extractFeaturesFromFile(s.file, 1);
+            }
+            for (const s of nonBreathSamples) {
+                classifier.extractFeaturesFromFile(s.file, 0);
+            }
+            updateSampleUI();
+        }
+
+        function clearAllSamples() {
+            if (confirm('確定要清除所有樣本嗎？')) {
+                breathSamples.length = 0;
+                nonBreathSamples.length = 0;
+                classifier.clearSamples();
+                updateSampleUI();
+                document.getElementById('modelReadyStatus').textContent = '未訓練';
+                document.getElementById('modelReadyStatus').style.color = '#aaa';
+                document.getElementById('modelAccuracy').textContent = '';
             }
         }
 
-        function clearAll() {
-            files = [];
-            allResults = [];
-            fileList.innerHTML = '';
-            resultsContainer.style.display = 'none';
-            progressContainer.style.display = 'none';
-            fileInput.value = '';
+        // ============================================
+        // 播放功能
+        // ============================================
+        function playSample(index) {
+            const allSamples = [...breathSamples, ...nonBreathSamples];
+            const sample = allSamples[index];
+            if (!sample) return;
+            
+            const url = URL.createObjectURL(sample.file);
+            const player = document.getElementById('audioPlayer');
+            const info = document.getElementById('audioInfo');
+            player.src = url;
+            info.textContent = `${sample.name} (${sample.label})`;
+            document.getElementById('audioModal').classList.add('active');
+            player.play();
         }
 
-        // 分類主邏輯
-        async function classifyFiles() {
-            if (isProcessing) return;
-            if (files.length === 0) {
-                alert('請先上傳音檔！');
+        function playSegment(audioData, startTime, endTime) {
+            // 從audioData中提取片段
+            const startSample = Math.floor(startTime * classifier.sampleRate);
+            const endSample = Math.floor(endTime * classifier.sampleRate);
+            const segment = audioData.slice(startSample, endSample);
+            
+            // 轉換為可播放的格式
+            const blob = new Blob([segment.buffer], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            const player = document.getElementById('audioPlayer');
+            const info = document.getElementById('audioInfo');
+            player.src = url;
+            info.textContent = `片段 ${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s`;
+            document.getElementById('audioModal').classList.add('active');
+            player.play();
+        }
+
+        function closeAudioModal() {
+            document.getElementById('audioModal').classList.remove('active');
+            document.getElementById('audioPlayer').pause();
+        }
+
+        // 點擊外部關閉
+        document.getElementById('audioModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAudioModal();
+        });
+
+        // ============================================
+        // 訓練模型
+        // ============================================
+        async function trainModel() {
+            const epochs = parseInt(document.getElementById('epochs').value) || 50;
+            const batchSize = parseInt(document.getElementById('batchSize').value) || 16;
+            
+            const stats = classifier.getStats();
+            if (stats.total < 10) {
+                alert('樣本數量不足！請至少上傳 10 個樣本片段。\n' +
+                      `目前：呼吸聲 ${stats.breath} 個，非呼吸聲 ${stats.nonBreath} 個`);
                 return;
             }
 
-            isProcessing = true;
-            classifyBtn.disabled = true;
-            classifyBtn.textContent = '⏳ 處理中...';
+            const trainBtn = document.getElementById('trainBtn');
+            trainBtn.disabled = true;
+            trainBtn.textContent = '⏳ 訓練中...';
 
-            classifier.setThreshold(parseFloat(document.getElementById('threshold').value));
-            classifier.setSegmentDuration(parseFloat(document.getElementById('segmentDuration').value));
+            const progress = document.getElementById('trainingProgress');
+            progress.style.display = 'block';
+            document.getElementById('trainingBar').style.width = '0%';
+            document.getElementById('trainingStatus').textContent = '準備數據...';
 
-            progressContainer.style.display = 'block';
-            resultsContainer.style.display = 'none';
-            allResults = [];
+            try {
+                await classifier.train(epochs, batchSize);
+                
+                document.getElementById('trainingStatus').textContent = '✅ 訓練完成！';
+                document.getElementById('modelReadyStatus').textContent = '✅ 已訓練';
+                document.getElementById('modelReadyStatus').style.color = '#48bb78';
+                document.getElementById('modelAccuracy').textContent = `準確率: ${(classifier.accuracy * 100).toFixed(2)}%`;
+                
+                alert(`✅ 訓練完成！\n準確率: ${(classifier.accuracy * 100).toFixed(2)}%`);
+            } catch (e) {
+                alert('訓練失敗: ' + e.message);
+                document.getElementById('trainingStatus').textContent = '❌ 訓練失敗';
+            }
 
-            const totalFiles = files.length;
+            trainBtn.disabled = false;
+            trainBtn.textContent = '🚀 開始訓練';
+        }
 
-            for (let i = 0; i < totalFiles; i++) {
-                const file = files[i];
-                updateProgress(i, totalFiles, `正在處理: ${file.name}`);
+        // ============================================
+        // 分類功能
+        // ============================================
+        const classifyFilesList = [];
+
+        document.getElementById('classifyInput').addEventListener('change', function(e) {
+            handleClassifyFiles(e.target.files);
+            this.value = '';
+        });
+
+        function handleClassifyFiles(files) {
+            for (const file of files) {
+                if (!classifyFilesList.some(f => f.name === file.name)) {
+                    classifyFilesList.push(file);
+                }
+            }
+            updateClassifyFileList();
+        }
+
+        function updateClassifyFileList() {
+            const container = document.getElementById('classifyFileList');
+            if (classifyFilesList.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = classifyFilesList.map((f, i) => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:6px;margin:4px 0;">
+                    <span>🎵 ${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    <button class="btn btn-danger btn-sm" onclick="removeClassifyFile(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function removeClassifyFile(index) {
+            classifyFilesList.splice(index, 1);
+            updateClassifyFileList();
+        }
+
+        async function classifyFiles() {
+            if (classifyFilesList.length === 0) {
+                alert('請先上傳要分類的音檔');
+                return;
+            }
+
+            if (!classifier.isTrained) {
+                alert('⚠️ 模型尚未訓練！請先到「訓練樣本」頁面上傳樣本並訓練模型。');
+                return;
+            }
+
+            classifier.setThreshold(parseFloat(document.getElementById('classifyThreshold').value));
+            classifier.setSegmentDuration(parseFloat(document.getElementById('segDuration').value));
+
+            const btn = document.getElementById('classifyBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 分類中...';
+
+            document.getElementById('classifyProgressCard').style.display = 'block';
+            classifyResults = [];
+
+            for (let i = 0; i < classifyFilesList.length; i++) {
+                const file = classifyFilesList[i];
+                const progress = ((i + 1) / classifyFilesList.length * 100);
+                document.getElementById('classifyProgress').style.width = progress + '%';
+                document.getElementById('classifyProgress').textContent = Math.round(progress) + '%';
+                document.getElementById('classifyProgressText').textContent = `處理中: ${file.name} (${i+1}/${classifyFilesList.length})`;
 
                 try {
-                    const audioData = await AudioProcessor.decodeAudioFile(file);
-                    const segments = await classifier.predictSegments(audioData);
-                    const duration = await AudioProcessor.getDuration(file);
+                    const audioData = await classifier.decodeAudio(file);
+                    const segments = await classifier.predict(audioData);
                     
                     const breathCount = segments.filter(s => s.label === 'breath').length;
                     const nonBreathCount = segments.length - breathCount;
-                    
-                    // 統計聲音類型
-                    const soundTypeStats = {};
-                    segments.forEach(s => {
-                        const type = s.soundType || 'unknown';
-                        soundTypeStats[type] = (soundTypeStats[type] || 0) + 1;
-                    });
 
-                    allResults.push({
+                    classifyResults.push({
                         fileName: file.name,
                         fileSize: file.size,
-                        duration: duration,
                         totalSegments: segments.length,
                         breathCount: breathCount,
                         nonBreathCount: nonBreathCount,
                         breathRatio: segments.length > 0 ? breathCount / segments.length : 0,
                         segments: segments,
-                        soundTypeStats: soundTypeStats,
                         audioData: audioData
                     });
 
-                } catch (error) {
-                    console.error(`處理 ${file.name} 時發生錯誤:`, error);
-                    allResults.push({
+                } catch (e) {
+                    console.error('分類失敗:', e);
+                    classifyResults.push({
                         fileName: file.name,
-                        error: error.message
+                        error: e.message
                     });
                 }
             }
 
-            displayResults(allResults);
+            // 顯示結果
+            displayResults(classifyResults);
             
-            isProcessing = false;
-            classifyBtn.disabled = false;
-            classifyBtn.textContent = '🚀 開始分類';
-            progressContainer.style.display = 'none';
+            btn.disabled = false;
+            btn.textContent = '🔍 開始分類';
+            document.getElementById('classifyProgressCard').style.display = 'none';
+            
+            // 切換到結果頁
+            switchTab('tab-results');
         }
 
-        function updateProgress(current, total, text) {
-            const percent = ((current + 1) / total * 100).toFixed(1);
-            progressFill.style.width = percent + '%';
-            progressFill.textContent = percent + '%';
-            progressText.textContent = text;
-        }
-
+        // ============================================
+        // 顯示結果
+        // ============================================
         function displayResults(results) {
-            resultsContainer.style.display = 'block';
+            const container = document.getElementById('resultsContainer');
             
+            if (results.length === 0 || results.every(r => r.error)) {
+                container.innerHTML = `
+                    <div style="text-align:center;padding:60px 20px;color:#888;">
+                        <div style="font-size:50px;margin-bottom:20px;">❌</div>
+                        <div>分類失敗或無結果</div>
+                    </div>
+                `;
+                return;
+            }
+
             let html = '';
-            
+            let totalBreath = 0;
+            let totalSegments = 0;
+
             for (const result of results) {
                 if (result.error) {
                     html += `
-                        <div class="result-card" style="border-left-color: #fc8181;">
-                            <div class="result-header">
-                                <span class="result-filename">❌ ${result.fileName}</span>
-                            </div>
-                            <p style="color: #fc8181;">錯誤: ${result.error}</p>
+                        <div class="card" style="border-left:4px solid #fc8181;">
+                            <h3>❌ ${result.fileName}</h3>
+                            <p style="color:#fc8181;">錯誤: ${result.error}</p>
                         </div>
                     `;
                     continue;
                 }
 
-                const breathPercent = (result.breathRatio * 100).toFixed(1);
-                const fileId = 'result-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
-                
-                // 聲音類型統計
-                let soundTypeHtml = '';
-                for (const [type, count] of Object.entries(result.soundTypeStats)) {
-                    const label = classifier.getSoundTypeLabel(type);
-                    soundTypeHtml += `<span class="sound-tag">${label}: ${count}</span>`;
-                }
-
-                html += `
-                    <div class="result-card" id="${fileId}">
-                        <div class="result-header">
-                            <span class="result-filename">🎵 ${result.fileName}</span>
-                            <span style="color:#aaa;">時長: ${result.duration.toFixed(1)}秒</span>
-                        </div>
-                        
-                        <div class="result-stats">
-                            <div class="stat-item">
-                                <div class="label">總片段</div>
-                                <div class="value info">${result.totalSegments}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="label">呼吸聲</div>
-                                <div class="value breath">${result.breathCount}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="label">非呼吸聲</div>
-                                <div class="value non-breath">${result.nonBreathCount}</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="label">呼吸比例</div>
-                                <div class="value">${breathPercent}%</div>
-                            </div>
-                        </div>
-
-                        <div class="sound-type-tags">
-                            ${soundTypeHtml}
-                        </div>
-
-                        <div class="tagging-tools">
-                            <span style="color:#aaa;font-size:13px;">🏷️ 批量標籤:</span>
-                            <button class="tag-breath" onclick="batchTag('${fileId}', 'breath')">
-                                ✅ 標記為呼吸
-                            </button>
-                            <button class="tag-non-breath" onclick="batchTag('${fileId}', 'non-breath')">
-                                ❌ 標記為非呼吸
-                            </button>
-                            <button class="tag-clear" onclick="batchTag('${fileId}', 'clear')">
-                                🗑️ 清除標籤
-                            </button>
-                            <span style="color:#aaa;font-size:12px;margin-left:10px;">
-                                點擊片段可切換標籤
-                            </span>
-                        </div>
-
-                        <div class="segment-list">
-                            ${result.segments.map((seg, index) => {
-                                const confidenceClass = seg.confidence > 0.7 ? 'high' : 
-                                                      seg.confidence > 0.4 ? 'medium' : 'low';
-                                const badgeClass = seg.label === 'breath' ? 'badge-breath' : 
-                                                  (seg.userLabel === 'breath' ? 'badge-breath' : 'badge-non-breath');
-                                const displayLabel = seg.userLabel || seg.label;
-                                const soundTypeLabel = classifier.getSoundTypeLabel(seg.soundType);
-                                
-                                return `
-                                    <div class="segment-item ${displayLabel}" 
-                                         onclick="toggleSegmentLabel('${fileId}', ${index})"
-                                         title="點擊切換標籤">
-                                        <span class="segment-time">
-                                            ${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s
-                                        </span>
-                                        <span class="segment-label">
-                                            <span class="badge ${badgeClass}">${displayLabel}</span>
-                                            <span class="sound-type">${soundTypeLabel}</span>
-                                            <span style="font-size:12px;color:#888;">
-                                                ${(seg.confidence * 100).toFixed(1)}%
-                                            </span>
-                                            <span class="confidence-bar">
-                                                <span class="confidence-fill ${confidenceClass}" 
-                                                      style="width: ${seg.confidence * 100}%;"></span>
-                                            </span>
-                                        </span>
-                                        <span style="font-size:11px;color:#666;">
-                                            #${index + 1}
-                                        </span>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-
-                        <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
-                            <button class="btn-info" onclick="exportSegmentsForFile('${fileId}')" 
-                                    style="padding:6px 15px;border:none;border-radius:6px;cursor:pointer;font-size:12px;">
-                                📋 匯出此檔案片段
-                            </button>
-                            <button class="btn-warning" onclick="createFolderStructure('${fileId}')"
-                                    style="padding:6px 15px;border:none;border-radius:6px;cursor:pointer;font-size:12px;">
-                                📁 建立分類資料夾
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            resultsList.innerHTML = html;
-            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        // ============================================
-        // 標籤功能
-        // ============================================
-        function toggleSegmentLabel(fileId, index) {
-            const result = findResultByFileId(fileId);
-            if (!result) return;
-            
-            const seg = result.segments[index];
-            if (!seg) return;
-            
-            // 切換標籤
-            if (seg.userLabel === 'breath') {
-                seg.userLabel = 'non-breath';
-            } else if (seg.userLabel === 'non-breath') {
-                seg.userLabel = null;
-            } else {
-                seg.userLabel = 'breath';
-            }
-            
-            // 更新統計
-            updateResultStats(fileId);
-            refreshSegmentDisplay(fileId);
-        }
-
-        function batchTag(fileId, action) {
-            const result = findResultByFileId(fileId);
-            if (!result) return;
-            
-            result.segments.forEach(seg => {
-                if (action === 'breath') {
-                    seg.userLabel = 'breath';
-                } else if (action === 'non-breath') {
-                    seg.userLabel = 'non-breath';
-                } else {
-                    seg.userLabel = null;
-                }
-            });
-            
-            updateResultStats(fileId);
-            refreshSegmentDisplay(fileId);
-        }
-
-        function findResultByFileId(fileId) {
-            // 從顯示的結果中查找
-            const card = document.getElementById(fileId);
-            if (!card) return null;
-            
-            // 從 allResults 中查找對應的檔案
-            const fileName = card.querySelector('.result-filename')?.textContent?.replace('🎵 ', '') || '';
-            return allResults.find(r => r.fileName === fileName);
-        }
-
-        function updateResultStats(fileId) {
-            const result = findResultByFileId(fileId);
-            if (!result) return;
-            
-            const breathCount = result.segments.filter(s => (s.userLabel || s.label) === 'breath').length;
-            const nonBreathCount = result.segments.length - breathCount;
-            
-            result.breathCount = breathCount;
-            result.nonBreathCount = nonBreathCount;
-            result.breathRatio = result.segments.length > 0 ? breathCount / result.segments.length : 0;
-            
-            // 更新顯示
-            const card = document.getElementById(fileId);
-            if (card) {
-                const stats = card.querySelectorAll('.stat-item .value');
-                if (stats.length >= 3) {
-                    stats[0].textContent = result.totalSegments;
-                    stats[1].textContent = breathCount;
-                    stats[2].textContent = nonBreathCount;
-                    const ratioEl = card.querySelector('.stat-item:last-child .value');
-                    if (ratioEl) {
-                        ratioEl.textContent = (result.breathRatio * 100).toFixed(1) + '%';
-                    }
-                }
-            }
-        }
-
-        function refreshSegmentDisplay(fileId) {
-            const card = document.getElementById(fileId);
-            if (!card) return;
-            
-            const result = findResultByFileId(fileId);
-            if (!result) return;
-            
-            const segmentList = card.querySelector('.segment-list');
-            if (!segmentList) return;
-            
-            const filterMode = document.getElementById('filterMode').value;
-            const minConfidence = parseFloat(document.getElementById('minConfidence').value);
-            
-            let filteredSegments = result.segments;
-            
-            if (filterMode === 'breath') {
-                filteredSegments = filteredSegments.filter(s => (s.userLabel || s.label) === 'breath');
-            } else if (filterMode === 'non-breath') {
-                filteredSegments = filteredSegments.filter(s => (s.userLabel || s.label) === 'non-breath');
-            } else if (filterMode === 'high-confidence') {
-                filteredSegments = filteredSegments.filter(s => s.confidence > 0.7);
-            }
-            
-            // 過濾低信心度
-            if (minConfidence > 0) {
-                filteredSegments = filteredSegments.filter(s => s.confidence >= minConfidence);
-            }
-            
-            segmentList.innerHTML = filteredSegments.map((seg, idx) => {
-                const originalIndex = result.segments.indexOf(seg);
-                const confidenceClass = seg.confidence > 0.7 ? 'high' : 
-                                      seg.confidence > 0.4 ? 'medium' : 'low';
-                const displayLabel = seg.userLabel || seg.label;
-                const badgeClass = displayLabel === 'breath' ? 'badge-breath' : 'badge-non-breath';
-                const soundTypeLabel = classifier.getSoundTypeLabel(seg.soundType);
-                
-                return `
-                    <div class="segment-item ${displayLabel}" 
-                         onclick="toggleSegmentLabel('${fileId}', ${originalIndex})"
-                         title="點擊切換標籤">
-                        <span class="segment-time">
-                            ${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s
-                        </span>
-                        <span class="segment-label">
-                            <span class="badge ${badgeClass}">${displayLabel}</span>
-                            <span class="sound-type">${soundTypeLabel}</span>
-                            <span style="font-size:12px;color:#888;">
-                                ${(seg.confidence * 100).toFixed(1)}%
-                            </span>
-                            <span class="confidence-bar">
-                                <span class="confidence-fill ${confidenceClass}" 
-                                      style="width: ${seg.confidence * 100}%;"></span>
-                            </span>
-                        </span>
-                        <span style="font-size:11px;color:#666;">
-                            #${originalIndex + 1}
-                        </span>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // ============================================
-        // 匯出功能
-        // ============================================
-        function exportAllResults() {
-            if (allResults.length === 0) {
-                alert('沒有結果可以匯出');
-                return;
-            }
-            
-            let report = '=' .repeat(70) + '\n';
-            report += '呼吸音分類報告\n';
-            report += '生成時間: ' + new Date().toLocaleString() + '\n';
-            report += '=' .repeat(70) + '\n\n';
-            
-            let totalBreath = 0;
-            let totalSegments = 0;
-            
-            for (const result of allResults) {
-                if (result.error) continue;
-                
-                report += `檔案: ${result.fileName}\n`;
-                report += `時長: ${result.duration.toFixed(2)} 秒\n`;
-                report += `總片段: ${result.totalSegments}\n`;
-                report += `呼吸片段: ${result.breathCount}\n`;
-                report += `非呼吸片段: ${result.nonBreathCount}\n`;
-                report += `呼吸比例: ${(result.breathRatio * 100).toFixed(2)}%\n`;
-                report += '\n片段詳情:\n';
-                report += '-' .repeat(50) + '\n';
-                
-                result.segments.forEach((seg, i) => {
-                    const label = seg.userLabel || seg.label;
-                    const type = classifier.getSoundTypeLabel(seg.soundType);
-                    report += `  ${i+1}. ${seg.startTime.toFixed(2)}s-${seg.endTime.toFixed(2)}s | ${label} | ${type} | 信心度: ${(seg.confidence * 100).toFixed(1)}%\n`;
-                });
-                
-                report += '\n' + '=' .repeat(50) + '\n\n';
-                
                 totalBreath += result.breathCount;
                 totalSegments += result.totalSegments;
+
+                html += `
+                    <div class="card" style="border-left:4px solid ${result.breathRatio > 0.3 ? '#48bb78' : '#fc8181'};">
+                        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
+                            <h3 style="margin:0;">🎵 ${result.fileName}</h3>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                <button class="btn btn-info btn-sm" onclick="exportSegments(${results.indexOf(result)})">📋 匯出片段</button>
+                                <button class="btn btn-success btn-sm" onclick="playAllBreaths(${results.indexOf(result)})">▶ 播放呼吸聲</button>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-box total">
+                                <div class="number">${result.totalSegments}</div>
+                                <div class="label">總片段</div>
+                            </div>
+                            <div class="stat-box breath">
+                                <div class="number">${result.breathCount}</div>
+                                <div class="label">呼吸聲</div>
+                            </div>
+                            <div class="stat-box non-breath">
+                                <div class="number">${result.nonBreathCount}</div>
+                                <div class="label">非呼吸聲</div>
+                            </div>
+                            <div class="stat-box total">
+                                <div class="number">${(result.breathRatio * 100).toFixed(1)}%</div>
+                                <div class="label">呼吸比例</div>
+                            </div>
+                        </div>
+
+                        <div style="max-height:400px;overflow-y:auto;margin-top:15px;">
+                            ${result.segments.map((seg, idx) => `
+                                <div style="display:grid;grid-template-columns:auto 1fr auto;gap:15px;padding:8px 12px;margin:2px 0;border-radius:4px;background:rgba(255,255,255,0.03);border-left:3px solid ${seg.label === 'breath' ? '#48bb78' : '#fc8181'};align-items:center;">
+                                    <span style="color:#aaa;font-size:13px;min-width:120px;">
+                                        ${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s
+                                    </span>
+                                    <span>
+                                        <span class="label-badge ${seg.label}">${seg.label === 'breath' ? '🟢 呼吸' : '🔴 非呼吸'}</span>
+                                        <span style="color:#888;font-size:12px;margin-left:10px;">
+                                            信心度: ${(seg.confidence * 100).toFixed(1)}%
+                                        </span>
+                                        <div style="display:inline-block;width:80px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;margin-left:8px;vertical-align:middle;">
+                                            <div style="width:${seg.confidence * 100}%;height:100%;background:${seg.confidence > 0.7 ? '#48bb78' : seg.confidence > 0.4 ? '#f6ad55' : '#fc8181'};"></div>
+                                        </div>
+                                    </span>
+                                    <button class="btn-play" onclick="playSegmentFromResult(${results.indexOf(result)}, ${idx})" style="padding:2px 10px;border:none;border-radius:4px;font-size:12px;cursor:pointer;background:rgba(99,179,237,0.2);color:#63b3ed;">▶</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
             }
-            
-            report += '=' .repeat(70) + '\n';
-            report += `總計: ${allResults.length} 個音檔, ${totalSegments} 個片段, ${totalBreath} 個呼吸片段\n`;
-            report += `整體呼吸比例: ${(totalBreath / totalSegments * 100).toFixed(2)}%\n`;
-            report += '=' .repeat(70) + '\n';
-            
-            // 下載報告
-            const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `呼吸分類報告_${new Date().toISOString().slice(0,10)}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
+
+            // 總計
+            html += `
+                <div class="card" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);">
+                    <h3>📊 總計</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box total"><div class="number">${results.length}</div><div class="label">音檔數</div></div>
+                        <div class="stat-box total"><div class="number">${totalSegments}</div><div class="label">總片段</div></div>
+                        <div class="stat-box breath"><div class="number">${totalBreath}</div><div class="label">呼吸片段</div></div>
+                        <div class="stat-box total"><div class="number">${totalSegments > 0 ? (totalBreath/totalSegments*100).toFixed(1) : 0}%</div><div class="label">平均呼吸比例</div></div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
         }
 
-        function exportSegmentsCSV() {
-            if (allResults.length === 0) {
-                alert('沒有結果可以匯出');
+        // ============================================
+        // 結果操作
+        // ============================================
+        function playSegmentFromResult(resultIndex, segmentIndex) {
+            const result = classifyResults[resultIndex];
+            if (!result || !result.audioData) return;
+            const seg = result.segments[segmentIndex];
+            if (!seg) return;
+            
+            playSegment(result.audioData, seg.startTime, seg.endTime);
+        }
+
+        function playAllBreaths(resultIndex) {
+            const result = classifyResults[resultIndex];
+            if (!result || !result.audioData) return;
+            
+            const breathSegments = result.segments.filter(s => s.label === 'breath');
+            if (breathSegments.length === 0) {
+                alert('此音檔中沒有呼吸聲片段');
                 return;
             }
             
-            let csv = '檔案名稱,開始時間,結束時間,標籤,聲音類型,信心度,用戶標籤\n';
+            // 合併所有呼吸片段為一個音檔
+            const sampleRate = classifier.sampleRate;
+            const totalDuration = breathSegments.reduce((sum, s) => sum + (s.endTime - s.startTime), 0);
+            const totalSamples = Math.floor(totalDuration * sampleRate);
+            const merged = new Float32Array(totalSamples);
             
-            for (const result of allResults) {
-                if (result.error) continue;
-                
-                for (const seg of result.segments) {
-                    const label = seg.userLabel || seg.label;
-                    const type = classifier.getSoundTypeLabel(seg.soundType);
-                    csv += `"${result.fileName}",${seg.startTime.toFixed(3)},${seg.endTime.toFixed(3)},${seg.label},${type},${seg.confidence.toFixed(4)},"${seg.userLabel || ''}"\n`;
+            let pos = 0;
+            for (const seg of breathSegments) {
+                const start = Math.floor(seg.startTime * sampleRate);
+                const end = Math.floor(seg.endTime * sampleRate);
+                const len = end - start;
+                for (let i = 0; i < len && pos < totalSamples; i++) {
+                    merged[pos++] = result.audioData[start + i] || 0;
                 }
             }
             
-            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+            // 播放合併的音頻
+            const blob = new Blob([merged.buffer], { type: 'audio/wav' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `片段分類_${new Date().toISOString().slice(0,10)}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
+            const player = document.getElementById('audioPlayer');
+            const info = document.getElementById('audioInfo');
+            player.src = url;
+            info.textContent = `${result.fileName} - 所有呼吸聲 (${breathSegments.length} 個片段)`;
+            document.getElementById('audioModal').classList.add('active');
+            player.play();
         }
 
-        function exportSegmentsForFile(fileId) {
-            const result = findResultByFileId(fileId);
+        function exportSegments(resultIndex) {
+            const result = classifyResults[resultIndex];
             if (!result) return;
             
             let text = `檔案: ${result.fileName}\n`;
-            text += `時長: ${result.duration.toFixed(2)} 秒\n`;
             text += `總片段: ${result.totalSegments}\n`;
             text += `呼吸片段: ${result.breathCount}\n`;
             text += `非呼吸片段: ${result.nonBreathCount}\n`;
             text += '=' .repeat(50) + '\n\n';
-            text += '編號 | 時間區間 | 標籤 | 聲音類型 | 信心度\n';
+            text += '編號 | 開始時間 | 結束時間 | 標籤 | 信心度\n';
             text += '-' .repeat(60) + '\n';
             
             result.segments.forEach((seg, i) => {
-                const label = seg.userLabel || seg.label;
-                const type = classifier.getSoundTypeLabel(seg.soundType);
-                text += `${String(i+1).padStart(3)} | ${seg.startTime.toFixed(2)}s-${seg.endTime.toFixed(2)}s | ${label.padEnd(8)} | ${type.padEnd(10)} | ${(seg.confidence * 100).toFixed(1)}%\n`;
+                text += `${String(i+1).padStart(3)} | ${seg.startTime.toFixed(2)}s | ${seg.endTime.toFixed(2)}s | ${seg.label.padEnd(6)} | ${(seg.confidence * 100).toFixed(1)}%\n`;
             });
             
             const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${result.fileName.replace(/\.[^.]+$/, '')}_片段詳情.txt`;
+            a.download = `${result.fileName.replace(/\.[^.]+$/, '')}_片段.txt`;
             a.click();
             URL.revokeObjectURL(url);
         }
 
         // ============================================
-        // 資料夾結構建立
+        // 模型儲存/載入
         // ============================================
-        function createFolderStructure(fileId) {
-            const result = findResultByFileId(fileId);
-            if (!result) return;
-            
-            // 建立分類資料夾結構的文本描述
-            let structure = `📁 ${result.fileName.replace(/\.[^.]+$/, '')}_分類結果/\n`;
-            structure += `├── 📁 呼吸聲片段/\n`;
-            structure += `├── 📁 非呼吸聲片段/\n`;
-            structure += `│   ├── 📁 語音/\n`;
-            structure += `│   ├── 📁 環境噪音/\n`;
-            structure += `│   ├── 📁 衝擊聲/\n`;
-            structure += `│   ├── 📁 音樂/\n`;
-            structure += `│   ├── 📁 電子聲/\n`;
-            structure += `│   ├── 📁 自然聲/\n`;
-            structure += `│   └── 📁 其他/\n`;
-            structure += `└── 📄 分類報告.txt\n\n`;
-            
-            structure += '片段分類詳情:\n';
-            structure += '=' .repeat(50) + '\n';
-            
-            const breathSegments = result.segments.filter(s => (s.userLabel || s.label) === 'breath');
-            const nonBreathSegments = result.segments.filter(s => (s.userLabel || s.label) === 'non-breath');
-            
-            structure += `\n🟢 呼吸聲片段 (${breathSegments.length} 個):\n`;
-            breathSegments.forEach((seg, i) => {
-                structure += `  ${i+1}. ${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s (信心度: ${(seg.confidence * 100).toFixed(1)}%)\n`;
-            });
-            
-            structure += `\n🔴 非呼吸聲片段 (${nonBreathSegments.length} 個):\n`;
-            nonBreathSegments.forEach((seg, i) => {
-                const type = classifier.getSoundTypeLabel(seg.soundType);
-                structure += `  ${i+1}. ${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s | ${type} (信心度: ${(seg.confidence * 100).toFixed(1)}%)\n`;
-            });
-            
-            // 顯示在模態框中
-            showModal('folderStructureModal', structure);
+        async function saveModel() {
+            await classifier.saveModel();
         }
 
-        function showModal(title, content) {
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.style.display = 'block';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2 style="color:#fff;">📁 資料夾結構</h2>
-                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <pre style="color:#ccc;font-family:'Courier New',monospace;font-size:13px;line-height:1.8;white-space:pre-wrap;background:rgba(0,0,0,0.3);padding:20px;border-radius:8px;">${content}</pre>
-                    <div style="margin-top:15px;display:flex;gap:10px;">
-                        <button class="btn-primary" onclick="downloadFolderStructure(this.closest('.modal').querySelector('pre').textContent)">
-                            💾 下載結構
-                        </button>
-                        <button class="btn-danger" onclick="this.closest('.modal').remove()">關閉</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        function downloadFolderStructure(content) {
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `資料夾結構_${new Date().toISOString().slice(0,10)}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function closeModal(id) {
-            const modal = document.getElementById(id);
-            if (modal) modal.style.display = 'none';
-        }
-
-        function showTaggingGuide() {
-            document.getElementById('taggingGuideModal').style.display = 'block';
+        async function loadModel() {
+            await classifier.loadModel();
         }
 
         // ============================================
-        // 事件綁定
+        // 監聽器
         // ============================================
-        fileInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
-            e.target.value = '';
-        });
-
-        uploadSection.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadSection.classList.add('dragover');
-        });
-
-        uploadSection.addEventListener('dragleave', () => {
-            uploadSection.classList.remove('dragover');
-        });
-
-        uploadSection.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadSection.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
-        });
-
-        uploadSection.addEventListener('click', (e) => {
-            if (e.target === uploadSection || e.target.closest('.upload-section')) {
-                fileInput.click();
-            }
-        });
-
-        document.getElementById('threshold').addEventListener('input', function() {
-            document.getElementById('thresholdValue').textContent = parseFloat(this.value).toFixed(2);
-        });
-
-        document.getElementById('minConfidence').addEventListener('input', function() {
-            document.getElementById('minConfidenceValue').textContent = parseFloat(this.value).toFixed(2);
-        });
-
-        document.getElementById('filterMode').addEventListener('change', function() {
-            // 重新整理顯示
-            const cards = document.querySelectorAll('.result-card');
-            cards.forEach(card => {
-                const fileId = card.id;
-                if (fileId && fileId.startsWith('result-')) {
-                    refreshSegmentDisplay(fileId);
-                }
-            });
-        });
-
-        document.getElementById('minConfidence').addEventListener('input', function() {
-            const cards = document.querySelectorAll('.result-card');
-            cards.forEach(card => {
-                const fileId = card.id;
-                if (fileId && fileId.startsWith('result-')) {
-                    refreshSegmentDisplay(fileId);
-                }
-            });
-        });
-
-        // 點擊模態框外部關閉
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
+        document.getElementById('classifyThreshold').addEventListener('input', function() {
+            document.getElementById('classifyThresholdVal').textContent = parseFloat(this.value).toFixed(2);
         });
 
         // ============================================
-        // 啟動
+        // 初始化
         // ============================================
-        init();
-
-        console.log('🫁 專業呼吸音分類器已載入');
-        console.log('📌 功能列表:');
-        console.log('  ✅ 自動分類呼吸/非呼吸聲');
-        console.log('  ✅ 聲音類型識別 (語音/噪音/音樂等)');
-        console.log('  ✅ 手動標籤功能 (點擊片段切換)');
-        console.log('  ✅ 批量標籤工具');
-        console.log('  ✅ 匯出報告 (TXT/CSV)');
-        console.log('  ✅ 資料夾結構建立');
-        console.log('  ✅ 信心度過濾與顯示');
-
-        // 示範功能
-        window.demo = async function() {
-            const sampleRate = 22050;
-            const duration = 3;
-            const samples = sampleRate * duration;
-            const audioData = new Float32Array(samples);
-            
-            for (let i = 0; i < samples; i++) {
-                const t = i / sampleRate;
-                const breath = Math.sin(2 * Math.PI * 0.5 * t) * Math.exp(-Math.pow((t - 1.5) * 2, 2));
-                const noise = (Math.random() - 0.5) * 0.1;
-                audioData[i] = breath * 0.5 + noise;
-            }
-            
-            const blob = new Blob([audioData.buffer], { type: 'audio/wav' });
-            const file = new File([blob], 'demo_breath.wav', { type: 'audio/wav' });
-            
-            files.push(file);
-            updateFileList();
-            console.log('✅ 示範音檔已添加');
-        };
-
-        console.log('💡 提示: 在控制台執行 demo() 可以添加示範音檔');
+        console.log('🫁 自定義呼吸音分類器已載入');
+        console.log('📌 使用流程:');
+        console.log('  1. 上傳您的裝置呼吸音樣本 (吸氣/呼氣聲)');
+        console.log('  2. 上傳非呼吸聲樣本 (環境音、噪音等)');
+        console.log('  3. 點擊「開始訓練」訓練模型');
+        console.log('  4. 上傳要分類的音檔並開始分類');
+        console.log('  5. 點擊片段旁的 ▶ 按鈕可播放驗證');
+        console.log('');
+        console.log('💡 提示: 樣本越多，分類越準確！建議每類至少 10-20 個片段。');
     </script>
 </body>
 </html>
