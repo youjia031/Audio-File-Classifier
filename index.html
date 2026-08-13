@@ -279,7 +279,7 @@
             font-weight: 700;
         }
 
-        /* 片段列表 - 可點擊播放 */
+        /* 片段列表 */
         .segment-item {
             display: grid;
             grid-template-columns: auto 1fr auto auto;
@@ -366,7 +366,7 @@
             background: rgba(99, 179, 237, 0.2);
             color: #63b3ed;
             border: 1px solid rgba(99, 179, 237, 0.3);
-            padding: 4px 12px;
+            padding: 4px 14px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
@@ -451,18 +451,32 @@
             margin-bottom: 15px;
         }
 
-        /* 內嵌音頻播放器（小） */
-        .inline-player {
-            display: none;
+        /* 內嵌音頻播放器 */
+        .inline-player-container {
             margin: 10px 0;
-            padding: 10px;
+            padding: 15px;
             background: rgba(0,0,0,0.3);
             border-radius: 8px;
+            border: 1px solid rgba(255,215,0,0.2);
+            display: none;
         }
 
-        .inline-player audio {
+        .inline-player-container.active {
+            display: block;
+        }
+
+        .inline-player-container audio {
             width: 100%;
             border-radius: 4px;
+        }
+
+        .inline-player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #aaa;
+            font-size: 14px;
         }
 
         .tabs {
@@ -625,7 +639,7 @@
     <div class="container">
         <div class="header">
             <h1>🎯 呼吸音檢測器</h1>
-            <div class="subtitle">點擊片段旁的 ▶ 按鈕即可播放驗證</div>
+            <div class="subtitle">點擊 ▶ 播放片段驗證分類是否正確</div>
             <div class="badge-info">🔬 分析特徵：振幅、過零率、頻譜質心、能量變化</div>
         </div>
 
@@ -734,30 +748,24 @@
                         💡 雙擊片段也可播放
                     </span>
                 </div>
+                <!-- 內嵌播放器 -->
+                <div class="inline-player-container" id="inlinePlayer">
+                    <div class="inline-player-info">
+                        <span id="playerLabel">▶ 正在播放...</span>
+                        <button class="btn btn-danger btn-sm" onclick="stopInlinePlayer()">⏹ 停止</button>
+                    </div>
+                    <audio controls id="inlineAudioPlayer" style="width:100%;"></audio>
+                    <div style="margin-top:8px;display:flex;gap:10px;">
+                        <button class="btn btn-success btn-sm" onclick="markCurrentPlayingInline('breath')">✅ 標記為呼吸</button>
+                        <button class="btn btn-danger btn-sm" onclick="markCurrentPlayingInline('non-breath')">❌ 標記為非呼吸</button>
+                    </div>
+                </div>
                 <div id="reviewList">
                     <div class="empty-state">
                         <div class="icon">📭</div>
                         <div>尚無檢測結果</div>
                         <div style="font-size:13px;margin-top:10px;">請先進行檢測分析</div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 音頻播放彈窗 -->
-    <div class="modal-overlay" id="audioModal">
-        <div class="modal-box">
-            <div class="header">
-                <h3>🎵 播放音頻</h3>
-                <button class="close" onclick="closeModal('audioModal')">&times;</button>
-            </div>
-            <div class="audio-player">
-                <audio controls id="audioPlayer" style="width:100%;"></audio>
-                <div style="margin-top:10px;color:#aaa;font-size:14px;" id="audioInfo">載入中...</div>
-                <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
-                    <button class="btn btn-success btn-sm" onclick="markCurrentPlaying('breath')">✅ 標記為呼吸</button>
-                    <button class="btn btn-danger btn-sm" onclick="markCurrentPlaying('non-breath')">❌ 標記為非呼吸</button>
                 </div>
             </div>
         </div>
@@ -1007,20 +1015,69 @@
         }
 
         // ============================================
+        // 音頻工具 - 轉換為WAV
+        // ============================================
+        function float32ToWav(data, sampleRate) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const numSamples = data.length;
+            const dataLength = numSamples * (bitsPerSample / 8);
+            const headerLength = 44;
+            const totalLength = headerLength + dataLength;
+
+            const buffer = new ArrayBuffer(totalLength);
+            const view = new DataView(buffer);
+
+            // RIFF header
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, totalLength - 8, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * (bitsPerSample / 8), true);
+            view.setUint16(32, numChannels * (bitsPerSample / 8), true);
+            view.setUint16(34, bitsPerSample, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataLength, true);
+
+            // 寫入音頻數據
+            const offset = 44;
+            for (let i = 0; i < numSamples; i++) {
+                const sample = Math.max(-1, Math.min(1, data[i]));
+                const int16 = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                view.setInt16(offset + i * 2, int16, true);
+            }
+
+            return buffer;
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        // ============================================
         // UI 控制
         // ============================================
         const detector = new BreathDetector();
         let uploadedFiles = [];
         let selectedFile = null;
         let selectedIndex = null;
-        let currentlyPlaying = null; // { fileName, index }
+        let currentlyPlaying = null;
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
-            if (tabId === 'tab-review') renderReviewList();
+            if (tabId === 'tab-review') {
+                renderReviewList();
+                stopInlinePlayer();
+            }
         }
 
         // ============================================
@@ -1087,6 +1144,7 @@
                 `<div class="empty-state"><div class="icon">📊</div><div>尚未進行檢測</div></div>`;
             document.getElementById('reviewList').innerHTML =
                 `<div class="empty-state"><div class="icon">📭</div><div>尚無檢測結果</div></div>`;
+            stopInlinePlayer();
         }
 
         // ============================================
@@ -1271,50 +1329,52 @@
         }
 
         // ============================================
-        // 播放功能 - 內嵌播放
+        // 播放功能 - 使用WAV格式
         // ============================================
-        let audioElement = null;
-
         function playSegmentInline(fileName, index) {
             // 如果正在播放同一個，停止
             if (currentlyPlaying && currentlyPlaying.fileName === fileName && currentlyPlaying.index === index) {
-                stopPlayback();
+                stopInlinePlayer();
                 return;
             }
 
             // 停止之前的播放
-            stopPlayback();
+            stopInlinePlayer();
 
             const segmentData = detector.getSegmentAudio(fileName, index);
-            if (!segmentData) {
+            if (!segmentData || segmentData.length === 0) {
                 alert('無法取得音頻數據');
                 return;
             }
 
             try {
-                // 創建音頻播放
-                const blob = new Blob([segmentData.buffer], { type: 'audio/wav' });
+                // 轉換為WAV格式
+                const wavBuffer = float32ToWav(segmentData, detector.sampleRate);
+                const blob = new Blob([wavBuffer], { type: 'audio/wav' });
                 const url = URL.createObjectURL(blob);
 
-                if (!audioElement) {
-                    audioElement = new Audio();
-                    audioElement.onended = function() {
-                        stopPlayback();
-                        renderReviewList();
-                    };
-                }
+                const audioPlayer = document.getElementById('inlineAudioPlayer');
+                const playerContainer = document.getElementById('inlinePlayer');
+                const playerLabel = document.getElementById('playerLabel');
 
-                audioElement.src = url;
-                audioElement.play();
+                // 顯示播放器
+                playerContainer.classList.add('active');
+                audioPlayer.src = url;
+
+                const seg = detector.segments[fileName][index];
+                const label = detector.getLabel(seg);
+                playerLabel.textContent = `▶ 播放中: ${fileName} - ${seg.startTime.toFixed(2)}s ~ ${seg.endTime.toFixed(2)}s (${label === 'breath' ? '🟢 呼吸' : '🔴 非呼吸'})`;
+
+                audioPlayer.play();
 
                 currentlyPlaying = { fileName, index };
-                renderReviewList();
 
-                // 更新播放按鈕狀態
-                document.querySelectorAll('.btn-play').forEach(btn => {
-                    btn.textContent = '▶ 播放';
-                    btn.classList.remove('playing');
-                });
+                // 監聽播放結束
+                audioPlayer.onended = function() {
+                    stopInlinePlayer();
+                };
+
+                renderReviewList();
 
             } catch (e) {
                 console.error('播放失敗:', e);
@@ -1322,13 +1382,26 @@
             }
         }
 
-        function stopPlayback() {
-            if (audioElement) {
-                audioElement.pause();
-                audioElement.src = '';
-            }
+        function stopInlinePlayer() {
+            const audioPlayer = document.getElementById('inlineAudioPlayer');
+            const playerContainer = document.getElementById('inlinePlayer');
+            
+            audioPlayer.pause();
+            audioPlayer.src = '';
+            playerContainer.classList.remove('active');
             currentlyPlaying = null;
             renderReviewList();
+        }
+
+        function markCurrentPlayingInline(label) {
+            if (!currentlyPlaying) {
+                alert('請先播放一個片段！');
+                return;
+            }
+            detector.markSegment(currentlyPlaying.fileName, currentlyPlaying.index, label);
+            stopInlinePlayer();
+            renderReviewList();
+            renderAnalysisResults();
         }
 
         // ============================================
@@ -1351,17 +1424,6 @@
                 return;
             }
             detector.markSegment(selectedFile, selectedIndex, label);
-            renderReviewList();
-            renderAnalysisResults();
-        }
-
-        function markCurrentPlaying(label) {
-            if (!currentlyPlaying) {
-                alert('請先播放一個片段！');
-                return;
-            }
-            detector.markSegment(currentlyPlaying.fileName, currentlyPlaying.index, label);
-            stopPlayback();
             renderReviewList();
             renderAnalysisResults();
         }
@@ -1411,7 +1473,6 @@
         // ============================================
         function closeModal(id) {
             document.getElementById(id).classList.remove('active');
-            document.getElementById('audioPlayer').pause();
         }
 
         function showGuide() {
@@ -1424,18 +1485,15 @@
         });
 
         // 點擊外部關閉彈窗
-        document.getElementById('audioModal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal('audioModal');
-        });
         document.getElementById('guideModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal('guideModal');
         });
 
-        // 鍵盤快捷鍵 - ESC 停止播放
+        // ESC 停止播放
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                stopPlayback();
-                closeModal('audioModal');
+                stopInlinePlayer();
+                closeModal('guideModal');
             }
         });
 
@@ -1444,9 +1502,8 @@
         console.log('  1. 上傳音檔 → 開始檢測');
         console.log('  2. 切換到「標記複查」');
         console.log('  3. 點擊 ▶ 播放片段驗證');
-        console.log('  4. 雙擊片段也可播放');
-        console.log('  5. 播放時片段會高亮');
-        console.log('  6. 標記錯誤的結果糾正');
+        console.log('  4. 播放器會出現在上方');
+        console.log('  5. 聽完後用按鈕標記糾正');
     </script>
 </body>
 </html>
