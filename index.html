@@ -3,878 +3,1079 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>呼吸音檢測器 - 聲音分離版</title>
+    <title>音頻事件分類器 - 聲音分離與標記</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0c0c1d 0%, #1a1a2e 50%, #16213e 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            color: #e0e0e0;
         }
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
-        }
-        .header {
-            background: rgba(255,255,255,0.05);
+            background: white;
             border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             padding: 30px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255,255,255,0.08);
         }
-        .header h1 {
-            font-size: 32px;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .header .subtitle {
-            color: #aaa;
-            margin-top: 5px;
-        }
-        .badge-info {
-            display: inline-block;
-            padding: 5px 15px;
-            background: rgba(99, 179, 237, 0.2);
-            border: 1px solid rgba(99, 179, 237, 0.3);
-            border-radius: 20px;
-            color: #63b3ed;
-            font-size: 13px;
-            margin-top: 10px;
-        }
-        .card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-        .card h3 {
-            color: #fff;
-            margin-bottom: 15px;
+        
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .upload-zone {
-            border: 3px dashed rgba(255,255,255,0.15);
-            border-radius: 12px;
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .upload-section {
+            border: 2px dashed #667eea;
+            border-radius: 15px;
             padding: 40px;
             text-align: center;
-            cursor: pointer;
+            background: #f8f9ff;
+            margin-bottom: 30px;
             transition: all 0.3s;
         }
-        .upload-zone:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
+        
+        .upload-section:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
         }
-        .upload-zone.dragover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
+        
+        .upload-section input[type="file"] {
+            display: none;
         }
-        .upload-zone .icon {
-            font-size: 50px;
-            margin-bottom: 10px;
-        }
-        .btn {
-            padding: 10px 25px;
+        
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
             cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
+            transition: transform 0.2s;
+            margin: 10px;
+        }
+        
+        .upload-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .upload-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            align-items: center;
+        }
+        
+        .controls label {
+            font-weight: 600;
+            color: #333;
+            display: flex;
             align-items: center;
             gap: 8px;
         }
-        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
-        .btn-success { background: linear-gradient(135deg, #48bb78, #38a169); color: #fff; }
-        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(72,187,120,0.4); }
-        .btn-danger { background: linear-gradient(135deg, #fc8181, #e53e3e); color: #fff; }
-        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(229,62,62,0.4); }
-        .btn-info { background: linear-gradient(135deg, #63b3ed, #4299e1); color: #fff; }
-        .btn-info:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(66,153,225,0.4); }
-        .btn-warning { background: linear-gradient(135deg, #f6ad55, #ed8936); color: #fff; }
-        .btn-warning:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(237,137,54,0.4); }
-        .btn-sm { padding: 6px 15px; font-size: 12px; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
-
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 5px;
-            border: 1px solid rgba(255,255,255,0.08);
-            flex-wrap: wrap;
+        
+        .controls input[type="range"] {
+            width: 150px;
         }
-        .tab {
-            padding: 12px 25px;
-            border: none;
+        
+        .controls input[type="number"] {
+            width: 80px;
+            padding: 5px 10px;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 15px;
+        }
+        
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            background: transparent;
-            color: #888;
-            flex: 1;
-            text-align: center;
-            min-width: 80px;
         }
-        .tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .tab.active { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; box-shadow: 0 5px 20px rgba(102,126,234,0.3); }
-        .tab-content { display: none; animation: fadeIn 0.3s ease-out; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .file-tag {
-            background: rgba(102, 126, 234, 0.2);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            margin: 3px;
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
-        .file-tag .remove { cursor: pointer; color: #fc8181; font-weight: bold; }
-
-        .spectrum-container {
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .info-box {
+            background: #f0f8ff;
+            border-left: 4px solid #17a2b8;
             padding: 15px;
-            margin: 10px 0;
-        }
-        #spectrumCanvas {
-            width: 100%;
-            height: 200px;
-            border-radius: 4px;
-            cursor: crosshair;
-            background: #0a0a1a;
-        }
-
-        .controls-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            border-radius: 8px;
             margin: 15px 0;
         }
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+        
+        .info-box strong {
+            color: #17a2b8;
         }
-        .control-group label { font-size: 13px; color: #aaa; }
-        .control-group input, .control-group select {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.08);
-            color: #fff;
+        
+        .waveform-container {
+            background: #1a1a2e;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            min-height: 200px;
+        }
+        
+        #waveform {
+            width: 100%;
+            height: 200px;
+        }
+        
+        .event-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .event-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .event-card:hover {
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .event-card .event-number {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 16px;
+        }
+        
+        .event-card .event-time {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        
+        .event-card .event-duration {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .event-card .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .event-card .btn-group .btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .player-container {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .player-container.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-bar .progress {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.1s;
+            width: 0%;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        
+        .status-text {
+            color: #666;
             font-size: 14px;
         }
-        .control-group input[type="range"] { padding: 0; accent-color: #667eea; }
-        .range-value { color: #667eea; font-weight: 700; }
-
-        /* ===== 修復選單樣式 ===== */
-        select {
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 2px solid rgba(102, 126, 234, 0.3);
-            background: #1a1a2e;
-            color: #ffffff !important;
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            min-width: 200px;
-            appearance: auto;
-            -webkit-appearance: auto;
-            -moz-appearance: auto;
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
         }
-        select:hover {
-            border-color: #667eea;
-            background: #222244;
+        
+        .loading.active {
+            display: block;
         }
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
         }
-        select option {
-            background: #1a1a2e;
-            color: #ffffff !important;
-            padding: 8px 12px;
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        select option:hover {
-            background: #667eea;
+        
+        .color-tag {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
         }
-        select option:checked {
-            background: #667eea;
-            color: #fff;
+        
+        .export-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
         }
-
-        .separation-result {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 15px;
-        }
-        .separation-result .channel {
-            background: rgba(255,255,255,0.03);
-            border-radius: 8px;
-            padding: 15px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .separation-result .channel h4 { color: #fff; margin-bottom: 10px; font-size: 14px; }
-        .separation-result .channel audio { width: 100%; border-radius: 4px; }
-
-        .empty-state { text-align: center; padding: 40px; color: #666; }
-        .empty-state .icon { font-size: 50px; margin-bottom: 15px; }
-
-        .frequency-presets {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 10px 0;
-        }
-        .preset-btn {
-            padding: 5px 15px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: transparent;
-            color: #aaa;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        .preset-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
-        .preset-btn.active { border-color: #667eea; color: #667eea; background: rgba(102,126,234,0.1); }
-
-        .review-audio-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 10px 0;
-        }
-        .review-audio-container .audio-box {
-            background: rgba(255,255,255,0.03);
-            border-radius: 8px;
-            padding: 15px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .review-audio-container .audio-box h4 { color: #aaa; margin-bottom: 8px; font-size: 13px; }
-        .review-audio-container .audio-box audio { width: 100%; }
-
-        /* 自訂滾動條 */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb { background: rgba(102,126,234,0.3); border-radius: 3px; }
-
+        
         @media (max-width: 768px) {
-            .header h1 { font-size: 24px; }
-            .separation-result { grid-template-columns: 1fr; }
-            .review-audio-container { grid-template-columns: 1fr; }
-            .tab { font-size: 13px; padding: 10px 15px; min-width: 60px; }
-            .controls-grid { grid-template-columns: 1fr; }
-            select { min-width: 100%; }
+            .container {
+                padding: 15px;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .event-list {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>
-                🎯 呼吸音檢測器
-                <span class="badge-info">🔊 聲音分離版</span>
-            </h1>
-            <div class="subtitle">上傳音檔 → 頻譜分析 → 聲音分離 → 標記驗證</div>
+        <h1>🎵 音頻事件分類器</h1>
+        <div class="subtitle">聲音分離 · 事件標記 · 播放驗證</div>
+        
+        <!-- 上傳區域 -->
+        <div class="upload-section" id="uploadSection">
+            <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+            <h3>上傳音頻檔案</h3>
+            <p style="color: #666; margin: 10px 0;">支援 WAV, MP3, FLAC, M4A, OGG 格式</p>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                🎵 選擇音頻檔案
+            </button>
+            <input type="file" id="fileInput" accept=".wav,.mp3,.flac,.m4a,.ogg,.aac">
+            <p id="fileName" style="color: #28a745; margin-top: 10px;"></p>
         </div>
-
-        <div class="tabs">
-            <button class="tab active" data-tab="tab-upload" onclick="switchTab('tab-upload')">📁 上傳</button>
-            <button class="tab" data-tab="tab-spectrum" onclick="switchTab('tab-spectrum')">📊 頻譜</button>
-            <button class="tab" data-tab="tab-separate" onclick="switchTab('tab-separate')">🔊 分離</button>
-            <button class="tab" data-tab="tab-review" onclick="switchTab('tab-review')">✏️ 標記</button>
+        
+        <!-- 狀態欄 -->
+        <div class="status-bar">
+            <span class="status-text" id="statusText">📊 等待上傳音頻...</span>
+            <span class="status-text" id="fileInfo"></span>
         </div>
-
-        <!-- 上傳 -->
-        <div id="tab-upload" class="tab-content active">
-            <div class="card">
-                <h3>📤 上傳音檔</h3>
-                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-                    <div class="icon">🎵</div>
-                    <div style="color:#fff;font-weight:600;font-size:18px;">拖曳或點擊上傳</div>
-                    <div style="color:#888;margin:10px 0;">支援 WAV, MP3, M4A, FLAC, OGG</div>
-                    <input type="file" id="fileInput" multiple accept=".wav,.mp3,.m4a,.flac,.ogg" style="display:none;">
-                </div>
-                <div id="uploadedFiles" style="margin-top:15px;"></div>
-                <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
-                    <button class="btn btn-primary" onclick="loadAudioFiles()">📥 載入音檔</button>
-                    <button class="btn btn-danger" onclick="clearAllFiles()">🗑️ 清除全部</button>
-                </div>
+        
+        <!-- 控制面板 -->
+        <div class="controls">
+            <label>
+                靈敏度
+                <input type="range" id="sensitivity" min="0.5" max="3" step="0.1" value="1.5">
+                <span id="sensitivityValue">1.5</span>
+            </label>
+            <label>
+                最短事件 (秒)
+                <input type="number" id="minDuration" value="0.3" step="0.1" min="0.05" max="2">
+            </label>
+            <button class="btn btn-primary" onclick="detectEvents()">🔍 檢測事件</button>
+            <button class="btn btn-info" onclick="useSpectralDetection()">🎯 頻譜分析</button>
+            <button class="btn btn-success" onclick="exportAllEvents()">💾 導出全部</button>
+            <button class="btn btn-danger" onclick="clearAll()">🗑️ 清除</button>
+        </div>
+        
+        <!-- 載入動畫 -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #666;">正在分析音頻...</p>
+        </div>
+        
+        <!-- 波形圖 -->
+        <div class="waveform-container">
+            <canvas id="waveform"></canvas>
+        </div>
+        
+        <!-- 播放器 -->
+        <div class="player-container" id="playerContainer">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong id="playerTitle">🎧 播放事件</strong>
+                <button class="btn btn-danger" onclick="closePlayer()" style="padding: 5px 10px;">✕</button>
+            </div>
+            <audio id="audioPlayer" controls style="width: 100%; margin: 10px 0;"></audio>
+            <div class="progress-bar">
+                <div class="progress" id="playProgress"></div>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="playPrevious()">⏮ 上一個</button>
+                <button class="btn btn-primary" onclick="playNext()">⏭ 下一個</button>
             </div>
         </div>
-
-        <!-- 頻譜 -->
-        <div id="tab-spectrum" class="tab-content">
-            <div class="card">
-                <h3>📊 頻譜分析</h3>
-                <p style="color:#aaa;margin-bottom:10px;">選擇音檔查看頻譜，點擊圖上位置可播放該頻率</p>
-                <div style="margin-bottom:10px;">
-                    <select id="spectrumSelect" onchange="showSpectrum()">
-                        <option value="">-- 請選擇音檔 --</option>
-                    </select>
-                </div>
-                <div class="spectrum-container">
-                    <canvas id="spectrumCanvas" height="200"></canvas>
-                    <div style="display:flex;justify-content:space-between;margin-top:5px;color:#666;font-size:11px;">
-                        <span>0 Hz</span>
-                        <span id="freqInfo">點擊頻譜可播放該頻率範圍</span>
-                        <span id="maxFreqLabel">11025 Hz</span>
-                    </div>
-                </div>
-                <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                    <span style="color:#888;font-size:12px;">FFT大小:</span>
-                    <select id="fftSizeSelect" onchange="showSpectrum()" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;">
-                        <option value="512">512</option>
-                        <option value="1024" selected>1024</option>
-                        <option value="2048">2048</option>
-                    </select>
-                    <span style="color:#888;font-size:12px;margin-left:10px;">顯示:</span>
-                    <select id="spectrumMode" onchange="showSpectrum()" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;">
-                        <option value="linear">線性</option>
-                        <option value="log" selected>對數(dB)</option>
-                    </select>
-                </div>
-                <div id="spectrumInfo" style="color:#888;font-size:13px;margin-top:10px;"></div>
-            </div>
+        
+        <!-- 事件列表 -->
+        <div style="margin-top: 20px;">
+            <h3>📋 檢測到的事件 <span id="eventCount">(0)</span></h3>
+            <div id="eventList" class="event-list"></div>
         </div>
-
-        <!-- 分離 -->
-        <div id="tab-separate" class="tab-content">
-            <div class="card">
-                <h3>🔊 聲音分離</h3>
-                <p style="color:#aaa;margin-bottom:10px;">設定頻率範圍，分離出特定頻段的聲音</p>
-                
-                <div style="margin-bottom:10px;">
-                    <select id="separateSelect" onchange="updateSeparateUI()">
-                        <option value="">-- 請選擇音檔 --</option>
-                    </select>
-                </div>
-
-                <div class="controls-grid">
-                    <div class="control-group">
-                        <label>低頻截止 (Hz)</label>
-                        <input type="range" id="lowCut" min="0" max="5000" step="10" value="100" oninput="updateSeparateUI()">
-                        <span class="range-value" id="lowCutVal">100 Hz</span>
-                    </div>
-                    <div class="control-group">
-                        <label>高頻截止 (Hz)</label>
-                        <input type="range" id="highCut" min="100" max="11000" step="10" value="400" oninput="updateSeparateUI()">
-                        <span class="range-value" id="highCutVal">400 Hz</span>
-                    </div>
-                    <div class="control-group">
-                        <label>濾波器斜率</label>
-                        <select id="filterSlope" style="padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;">
-                            <option value="6">6 dB/oct</option>
-                            <option value="12" selected>12 dB/oct</option>
-                            <option value="24">24 dB/oct</option>
-                            <option value="48">48 dB/oct</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="frequency-presets">
-                    <button class="preset-btn" onclick="setPreset(100,400,'🫁 呼吸', this)">🫁 呼吸 (100-400Hz)</button>
-                    <button class="preset-btn" onclick="setPreset(300,3400,'🗣️ 語音', this)">🗣️ 語音 (300-3400Hz)</button>
-                    <button class="preset-btn" onclick="setPreset(0,100,'🔊 低頻', this)">🔊 低頻 (0-100Hz)</button>
-                    <button class="preset-btn" onclick="setPreset(2000,5000,'🎵 高頻', this)">🎵 高頻 (2000-5000Hz)</button>
-                </div>
-
-                <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
-                    <button class="btn btn-success" onclick="applySeparation()">🔊 套用分離</button>
-                    <button class="btn btn-warning" onclick="resetSeparation()">↩️ 重置</button>
-                </div>
+        
+        <!-- 導出區域 -->
+        <div class="export-section" id="exportSection" style="display: none;">
+            <h4>📦 導出選項</h4>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                <button class="btn btn-success" onclick="exportTimeline()">📄 導出時間線</button>
+                <button class="btn btn-warning" onclick="exportAllEvents()">🎵 導出所有事件</button>
             </div>
-
-            <div class="card">
-                <h3>📊 分離結果</h3>
-                <div id="separationResult">
-                    <div class="empty-state"><div class="icon">🔊</div><div>尚未進行聲音分離</div></div>
-                </div>
-            </div>
+            <div id="exportResult" style="margin-top: 10px; color: #28a745;"></div>
         </div>
-
-        <!-- 標記 -->
-        <div id="tab-review" class="tab-content">
-            <div class="card">
-                <h3>✏️ 標記驗證</h3>
-                <p style="color:#aaa;margin-bottom:10px;">比較原始音檔和分離後的聲音，判斷是否為呼吸聲</p>
-                <div id="reviewContent">
-                    <div class="empty-state"><div class="icon">📭</div><div>請先進行聲音分離</div></div>
-                </div>
-            </div>
+        
+        <!-- 底部資訊 -->
+        <div class="info-box" style="margin-top: 20px;">
+            <strong>💡 提示：</strong>
+            點擊事件卡片上的「播放」按鈕可驗證分離的聲音，上下鍵可切換事件。
+            靈敏度越高檢測越嚴格，最短事件時間可過濾短暫的雜訊。
         </div>
     </div>
-
+    
+    <script src="https://cdn.jsdelivr.net/npm/audiobuffer-to-wav@1.0.0/index.js"></script>
     <script>
-        // ============================================
-        // 核心功能
-        // ============================================
-        
-        // 儲存數據
-        let audioFiles = {};  // { filename: { data: Float32Array, sampleRate: number, duration: number } }
-        let separatedData = {}; // { filename: { original: Float32Array, filtered: Float32Array, lowCut, highCut } }
-        let uploadedFileList = [];
-        let currentSpectrumFile = null;
+        // ==================== 全局變數 ====================
         let audioContext = null;
-
-        // ========== 工具函數 ==========
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
-            if (tabId === 'tab-spectrum') updateSelects();
-            if (tabId === 'tab-separate') { updateSelects(); updateSeparateUI(); }
-            if (tabId === 'tab-review') updateReview();
-        }
-
-        // ========== 檔案管理 ==========
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            handleFiles(e.target.files);
-            this.value = '';
+        let audioBuffer = null;
+        let audioData = null;
+        let sampleRate = 22050;
+        let events = [];
+        let currentEventIndex = -1;
+        let separatedAudios = {};
+        let canvasCtx = null;
+        let waveformImageData = null;
+        let isPlaying = false;
+        let audioPlayer = null;
+        
+        // 顏色配置
+        const eventColors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+            '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+        ];
+        
+        // ==================== DOM 引用 ====================
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const statusText = document.getElementById('statusText');
+        const fileInfo = document.getElementById('fileInfo');
+        const eventList = document.getElementById('eventList');
+        const eventCount = document.getElementById('eventCount');
+        const loading = document.getElementById('loading');
+        const playerContainer = document.getElementById('playerContainer');
+        const audioPlayerEl = document.getElementById('audioPlayer');
+        const playProgress = document.getElementById('playProgress');
+        const playerTitle = document.getElementById('playerTitle');
+        const sensitivity = document.getElementById('sensitivity');
+        const sensitivityValue = document.getElementById('sensitivityValue');
+        const minDuration = document.getElementById('minDuration');
+        const exportSection = document.getElementById('exportSection');
+        const exportResult = document.getElementById('exportResult');
+        const canvas = document.getElementById('waveform');
+        
+        // ==================== 事件監聽 ====================
+        sensitivity.addEventListener('input', function() {
+            sensitivityValue.textContent = this.value;
         });
-
-        const uploadZone = document.getElementById('uploadZone');
-        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-        uploadZone.addEventListener('dragleave', () => { uploadZone.classList.remove('dragover'); });
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
+        
+        fileInput.addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (file) {
+                fileName.textContent = `✅ 已選擇: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                loadAudioFile(file);
+            }
         });
-
-        function handleFiles(files) {
-            for (const file of files) {
-                const valid = ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/m4a', 'audio/flac', 'audio/ogg'];
-                if (!valid.includes(file.type) && !file.name.match(/\.(wav|mp3|m4a|flac|ogg)$/i)) continue;
-                if (!uploadedFileList.some(f => f.name === file.name)) {
-                    uploadedFileList.push(file);
-                }
-            }
-            renderFileList();
-            updateSelects();
-        }
-
-        function renderFileList() {
-            const container = document.getElementById('uploadedFiles');
-            if (uploadedFileList.length === 0) { container.innerHTML = ''; return; }
-            container.innerHTML = uploadedFileList.map((f, i) => `
-                <div class="file-tag">
-                    🎵 ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)
-                    <span class="remove" onclick="removeFile(${i})">✕</span>
-                </div>
-            `).join('');
-        }
-
-        function removeFile(index) {
-            const name = uploadedFileList[index].name;
-            uploadedFileList.splice(index, 1);
-            delete audioFiles[name];
-            delete separatedData[name];
-            renderFileList();
-            updateSelects();
-        }
-
-        function clearAllFiles() {
-            if (uploadedFileList.length === 0) return;
-            if (!confirm('確定清除所有檔案？')) return;
-            uploadedFileList = [];
-            audioFiles = {};
-            separatedData = {};
-            renderFileList();
-            updateSelects();
-            document.getElementById('separationResult').innerHTML = 
-                '<div class="empty-state"><div class="icon">🔊</div><div>尚未進行聲音分離</div></div>';
-            document.getElementById('reviewContent').innerHTML = 
-                '<div class="empty-state"><div class="icon">📭</div><div>請先進行聲音分離</div></div>';
-        }
-
-        // ========== 載入音檔 ==========
-        async function loadAudioFiles() {
-            if (uploadedFileList.length === 0) {
-                alert('請先上傳音檔！');
-                return;
-            }
-
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
-            let loaded = 0;
-            for (const file of uploadedFileList) {
-                if (audioFiles[file.name]) continue;
+        
+        // ==================== 音頻載入 ====================
+        function loadAudioFile(file) {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
                 try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                    const data = audioBuffer.getChannelData(0);
+                    statusText.textContent = '⏳ 正在載入音頻...';
                     
-                    // 重採樣到 22050 Hz
-                    let sampleRate = audioBuffer.sampleRate;
-                    let audioData = data;
-                    if (sampleRate !== 22050) {
-                        const ratio = sampleRate / 22050;
-                        const newLen = Math.floor(data.length / ratio);
-                        const resampled = new Float32Array(newLen);
-                        for (let i = 0; i < newLen; i++) {
-                            const pos = i * ratio;
-                            const idx = Math.floor(pos);
-                            const frac = pos - idx;
-                            if (idx + 1 < data.length) {
-                                resampled[i] = data[idx] * (1 - frac) + data[idx + 1] * frac;
-                            } else {
-                                resampled[i] = data[idx];
-                            }
-                        }
-                        audioData = resampled;
-                        sampleRate = 22050;
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     }
                     
-                    audioFiles[file.name] = {
-                        data: audioData,
-                        sampleRate: sampleRate,
-                        duration: audioData.length / sampleRate
-                    };
-                    loaded++;
-                } catch (e) {
-                    console.error('載入失敗:', file.name, e);
+                    const arrayBuffer = e.target.result;
+                    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    audioData = audioBuffer.getChannelData(0);
+                    sampleRate = audioBuffer.sampleRate;
+                    
+                    // 更新資訊
+                    const duration = audioBuffer.duration;
+                    fileInfo.textContent = `⏱️ ${duration.toFixed(2)}秒 | 📊 ${sampleRate} Hz | ${audioBuffer.numberOfChannels}聲道`;
+                    
+                    // 繪製波形
+                    drawWaveform(audioData, sampleRate);
+                    
+                    statusText.textContent = `✅ 音頻載入完成！點擊「檢測事件」開始分析`;
+                    fileName.textContent = `✅ 已載入: ${file.name}`;
+                    
+                } catch (error) {
+                    console.error('載入音頻失敗:', error);
+                    statusText.textContent = '❌ 載入音頻失敗，請確認檔案格式正確';
                 }
-            }
-            
-            updateSelects();
-            alert(`✅ 成功載入 ${loaded} 個音檔`);
-            if (loaded > 0) switchTab('tab-spectrum');
+            };
+            reader.readAsArrayBuffer(file);
         }
-
-        function updateSelects() {
-            const names = Object.keys(audioFiles);
-            const selects = ['spectrumSelect', 'separateSelect'];
-            for (const id of selects) {
-                const sel = document.getElementById(id);
-                if (!sel) continue;
-                const current = sel.value;
-                sel.innerHTML = '<option value="">-- 請選擇音檔 --</option>';
-                for (const name of names) {
-                    sel.innerHTML += `<option value="${name}">${name}</option>`;
-                }
-                if (current && names.includes(current)) sel.value = current;
-            }
-        }
-
-        // ========== 頻譜分析 ==========
-        function showSpectrum() {
-            const fileName = document.getElementById('spectrumSelect').value;
-            if (!fileName || !audioFiles[fileName]) {
-                const canvas = document.getElementById('spectrumCanvas');
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                document.getElementById('spectrumInfo').textContent = '請選擇音檔';
-                return;
-            }
-
-            currentSpectrumFile = fileName;
-            const audio = audioFiles[fileName];
-            const fftSize = parseInt(document.getElementById('fftSizeSelect').value);
-            const mode = document.getElementById('spectrumMode').value;
-            
-            // 計算頻譜
-            const spectrum = computeSpectrum(audio.data, fftSize, audio.sampleRate);
-            drawSpectrum(spectrum, audio.sampleRate, mode);
-            
-            document.getElementById('spectrumInfo').textContent = 
-                `📊 ${fileName} | 時長: ${audio.duration.toFixed(2)}秒 | 採樣率: ${audio.sampleRate}Hz | 頻率範圍: 0-${(audio.sampleRate/2).toFixed(0)}Hz`;
-            document.getElementById('maxFreqLabel').textContent = `${(audio.sampleRate/2).toFixed(0)} Hz`;
-        }
-
-        function computeSpectrum(audioData, fftSize, sampleRate) {
-            const numFrames = Math.floor(audioData.length / fftSize);
-            const spectrum = new Float32Array(fftSize / 2);
-            
-            // 漢寧窗
-            const window = new Float32Array(fftSize);
-            for (let i = 0; i < fftSize; i++) {
-                window[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (fftSize - 1)));
-            }
-            
-            for (let frame = 0; frame < Math.min(numFrames, 50); frame++) {
-                const start = frame * Math.floor(fftSize / 2);
-                const frameData = new Float32Array(fftSize);
-                for (let i = 0; i < fftSize && start + i < audioData.length; i++) {
-                    frameData[i] = audioData[start + i] * window[i];
-                }
-                
-                // 簡單 FFT
-                const fftResult = simpleFFT(frameData);
-                for (let i = 0; i < fftSize / 2; i++) {
-                    spectrum[i] += Math.abs(fftResult[i]);
-                }
-            }
-            
-            const frames = Math.min(numFrames, 50);
-            for (let i = 0; i < spectrum.length; i++) {
-                spectrum[i] /= (frames || 1);
-            }
-            
-            return spectrum;
-        }
-
-        function simpleFFT(data) {
-            const n = data.length;
-            const result = new Float32Array(n);
-            for (let k = 0; k < n; k++) {
-                let sumReal = 0, sumImag = 0;
-                for (let j = 0; j < n; j++) {
-                    const angle = -2 * Math.PI * k * j / n;
-                    sumReal += data[j] * Math.cos(angle);
-                    sumImag += data[j] * Math.sin(angle);
-                }
-                result[k] = Math.sqrt(sumReal * sumReal + sumImag * sumImag);
-            }
-            return result;
-        }
-
-        function drawSpectrum(spectrum, sampleRate, mode) {
-            const canvas = document.getElementById('spectrumCanvas');
+        
+        // ==================== 繪製波形 ====================
+        function drawWaveform(data, sr) {
             const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
+            const width = canvas.width = canvas.parentElement.clientWidth - 40;
+            const height = canvas.height = 200;
             
             ctx.clearRect(0, 0, width, height);
             
-            // 背景
-            ctx.fillStyle = 'rgba(10,10,30,0.9)';
+            // 繪製背景
+            const gradient = ctx.createLinearGradient(0, 0, width, 0);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(0.5, '#16213e');
+            gradient.addColorStop(1, '#1a1a2e');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
             
-            // 呼吸頻率範圍標記
-            const breathLow = 100 / (sampleRate / 2);
-            const breathHigh = 400 / (sampleRate / 2);
-            ctx.fillStyle = 'rgba(72, 187, 120, 0.12)';
-            ctx.fillRect(breathLow * width, 0, (breathHigh - breathLow) * width, height);
+            // 繪製波形
+            const step = Math.max(1, Math.floor(data.length / width));
+            const halfHeight = height / 2;
             
-            // 網格
-            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-            ctx.lineWidth = 0.5;
-            for (let i = 0; i < 10; i++) {
-                const y = (i / 10) * height;
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
-            }
-            
-            // 繪製頻譜
-            let maxVal = Math.max(...spectrum);
-            if (maxVal === 0) maxVal = 1;
-            
-            const step = Math.max(1, Math.floor(spectrum.length / width));
             ctx.beginPath();
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
             
             for (let i = 0; i < width; i++) {
-                const idx = Math.min(Math.floor(i * step), spectrum.length - 1);
-                let val = spectrum[idx] / maxVal;
+                const idx = Math.floor(i * step);
+                if (idx >= data.length) break;
+                const val = data[idx];
+                const y = halfHeight + val * halfHeight * 0.8;
                 
-                if (mode === 'log') {
-                    val = Math.log10(val + 0.001) / Math.log10(1.1);
-                    val = (val + 3) / 3;
-                    val = Math.max(0, Math.min(1, val));
+                if (i === 0) {
+                    ctx.moveTo(i, y);
+                } else {
+                    ctx.lineTo(i, y);
                 }
-                
-                const x = i;
-                const y = height - val * height * 0.9 - height * 0.05;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
             }
-            
-            ctx.strokeStyle = 'rgba(102, 126, 234, 0.8)';
-            ctx.lineWidth = 1.5;
             ctx.stroke();
             
-            // 填充
-            ctx.lineTo(width, height);
-            ctx.lineTo(0, height);
-            ctx.closePath();
-            const grad = ctx.createLinearGradient(0, 0, 0, height);
-            grad.addColorStop(0, 'rgba(102,126,234,0.3)');
-            grad.addColorStop(1, 'rgba(102,126,234,0.02)');
-            ctx.fillStyle = grad;
-            ctx.fill();
-            
-            // 呼吸頻率標籤
-            ctx.fillStyle = 'rgba(72,187,120,0.5)';
-            ctx.font = '10px sans-serif';
-            ctx.fillText('🫁 呼吸範圍', breathLow * width + 5, 15);
-            
-            // 邊界線
-            ctx.strokeStyle = 'rgba(72,187,120,0.3)';
+            // 繪製網格線
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
             ctx.lineWidth = 1;
-            ctx.setLineDash([4, 4]);
-            ctx.beginPath();
-            ctx.moveTo(breathLow * width, 0);
-            ctx.lineTo(breathLow * width, height);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(breathHigh * width, 0);
-            ctx.lineTo(breathHigh * width, height);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            for (let i = 0; i < 10; i++) {
+                const x = (i / 10) * width;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            
+            // 繪製事件標記
+            for (let i = 0; i < events.length; i++) {
+                const [start, end] = events[i];
+                const duration = audioBuffer ? audioBuffer.duration : 1;
+                const x1 = (start / duration) * width;
+                const x2 = (end / duration) * width;
+                
+                ctx.fillStyle = eventColors[i % eventColors.length] + '30';
+                ctx.fillRect(x1, 0, x2 - x1, height);
+                
+                // 邊框
+                ctx.strokeStyle = eventColors[i % eventColors.length];
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                ctx.strokeRect(x1, 0, x2 - x1, height);
+                ctx.setLineDash([]);
+                
+                // 標籤
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px Arial';
+                ctx.fillText(`E${i+1}`, x1 + 5, 20);
+            }
         }
-
-        // 點擊頻譜播放
-        document.getElementById('spectrumCanvas').addEventListener('click', function(e) {
-            if (!currentSpectrumFile || !audioFiles[currentSpectrumFile]) return;
-            
-            const rect = this.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width;
-            const sampleRate = audioFiles[currentSpectrumFile].sampleRate;
-            const freq = x * sampleRate / 2;
-            
-            const lowCut = Math.max(0, freq - 80);
-            const highCut = Math.min(sampleRate / 2, freq + 80);
-            
-            document.getElementById('freqInfo').textContent = 
-                `🔊 播放頻率: ${lowCut.toFixed(0)} - ${highCut.toFixed(0)} Hz`;
-            
-            // 分離並播放
-            const filtered = filterAudio(audioFiles[currentSpectrumFile].data, lowCut, highCut, sampleRate, 24);
-            if (filtered) {
-                playAudio(filtered, sampleRate);
-            }
-        });
-
-        // ========== 聲音分離 ==========
-        function filterAudio(audioData, lowCut, highCut, sampleRate, slope) {
-            const result = new Float32Array(audioData.length);
-            const nyquist = sampleRate / 2;
-            
-            // 使用 FFT 濾波
-            const fftSize = 2048;
-            const hopSize = Math.floor(fftSize / 2);
-            const numFrames = Math.floor(audioData.length / hopSize) + 1;
-            const padded = new Float32Array(numFrames * hopSize + fftSize);
-            padded.set(audioData);
-            
-            const window = new Float32Array(fftSize);
-            for (let i = 0; i < fftSize; i++) {
-                window[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (fftSize - 1)));
+        
+        // ==================== 事件檢測 ====================
+        function detectEvents() {
+            if (!audioData) {
+                statusText.textContent = '❌ 請先載入音頻檔案';
+                return;
             }
             
-            const output = new Float32Array(padded.length);
+            loading.classList.add('active');
+            statusText.textContent = '⏳ 正在檢測事件...';
+            events = [];
             
-            for (let frame = 0; frame < numFrames; frame++) {
-                const start = frame * hopSize;
-                const frameData = new Float32Array(fftSize);
-                for (let i = 0; i < fftSize && start + i < padded.length; i++) {
-                    frameData[i] = padded[start + i] * window[i];
-                }
-                
-                const fftResult = simpleFFT(frameData);
-                
-                // 頻率濾波
-                for (let i = 0; i < fftSize / 2; i++) {
-                    const freq = (i / fftSize) * sampleRate;
-                    let gain = 1;
+            setTimeout(() => {
+                try {
+                    const thresholdMultiplier = parseFloat(sensitivity.value);
+                    const minDur = parseFloat(minDuration.value);
                     
-                    if (freq < lowCut) {
-                        const ratio = freq / (lowCut || 1);
-                        gain = Math.pow(ratio, slope / 6);
-                    } else if (freq > highCut) {
-                        const ratio = (sampleRate - freq) / (sampleRate - highCut);
-                        gain = Math.pow(ratio, slope / 6);
-                    }
-                    gain = Math.max(0, Math.min(1, gain));
+                    // 計算短時能量
+                    const frameLength = Math.floor(0.025 * sampleRate);
+                    const hopLength = Math.floor(0.010 * sampleRate);
                     
-                    fftResult[i] *= gain;
-                    fftResult[fftSize - i - 1] *= gain;
-                }
-                
-                // 反 FFT (簡化)
-                const ifftResult = new Float32Array(fftSize);
-                for (let k = 0; k < fftSize; k++) {
-                    let sum = 0;
-                    for (let j = 0; j < fftSize / 2; j++) {
-                        const angle = 2 * Math.PI * j * k / fftSize;
-                        sum += fftResult[j] * Math.cos(angle);
+                    const energy = [];
+                    for (let i = 0; i < audioData.length - frameLength; i += hopLength) {
+                        let sum = 0;
+                        for (let j = 0; j < frameLength && i + j < audioData.length; j++) {
+                            sum += audioData[i + j] * audioData[i + j];
+                        }
+                        energy.push(Math.sqrt(sum / frameLength));
                     }
-                    ifftResult[k] = sum / (fftSize / 2);
+                    
+                    // 動態閾值
+                    const mean = energy.reduce((a, b) => a + b, 0) / energy.length;
+                    const std = Math.sqrt(energy.reduce((a, b) => a + (b - mean) * (b - mean), 0) / energy.length);
+                    const threshold = mean + thresholdMultiplier * std;
+                    
+                    // 檢測事件
+                    const times = [];
+                    for (let i = 0; i < energy.length; i++) {
+                        times.push((i * hopLength) / sampleRate);
+                    }
+                    
+                    let inEvent = false;
+                    let startIdx = 0;
+                    const detectedEvents = [];
+                    
+                    for (let i = 0; i < energy.length; i++) {
+                        const isAbove = energy[i] > threshold;
+                        if (isAbove && !inEvent) {
+                            inEvent = true;
+                            startIdx = i;
+                        } else if (!isAbove && inEvent) {
+                            inEvent = false;
+                            const endIdx = i;
+                            const startTime = times[startIdx];
+                            const endTime = times[Math.min(endIdx - 1, times.length - 1)];
+                            if (endTime - startTime >= minDur) {
+                                detectedEvents.push([startTime, endTime]);
+                            }
+                        }
+                    }
+                    
+                    if (inEvent) {
+                        const endTime = times[times.length - 1];
+                        const startTime = times[startIdx];
+                        if (endTime - startTime >= minDur) {
+                            detectedEvents.push([startTime, endTime]);
+                        }
+                    }
+                    
+                    // 合併重疊事件
+                    detectedEvents.sort((a, b) => a[0] - b[0]);
+                    const mergedEvents = [];
+                    for (const evt of detectedEvents) {
+                        if (mergedEvents.length === 0 || evt[0] > mergedEvents[mergedEvents.length - 1][1] + 0.1) {
+                            mergedEvents.push(evt);
+                        } else {
+                            mergedEvents[mergedEvents.length - 1][1] = Math.max(
+                                mergedEvents[mergedEvents.length - 1][1],
+                                evt[1]
+                            );
+                        }
+                    }
+                    
+                    events = mergedEvents;
+                    
+                    // 更新UI
+                    renderEvents();
+                    drawWaveform(audioData, sampleRate);
+                    
+                    statusText.textContent = `✅ 檢測完成！找到 ${events.length} 個事件`;
+                    eventCount.textContent = `(${events.length})`;
+                    exportSection.style.display = 'block';
+                    
+                    if (events.length === 0) {
+                        statusText.textContent = '⚠️ 未檢測到事件，請調整靈敏度或最短事件時間';
+                    }
+                    
+                } catch (error) {
+                    console.error('檢測失敗:', error);
+                    statusText.textContent = '❌ 檢測失敗: ' + error.message;
                 }
                 
-                for (let i = 0; i < fftSize && start + i < output.length; i++) {
-                    output[start + i] += ifftResult[i] * window[i];
-                }
-            }
-            
-            // 歸一化
-            let maxVal = 0;
-            for (let i = 0; i < audioData.length; i++) {
-                if (Math.abs(output[i]) > maxVal) maxVal = Math.abs(output[i]);
-            }
-            if (maxVal > 0.001) {
-                const gain = 0.9 / maxVal;
-                for (let i = 0; i < audioData.length; i++) {
-                    result[i] = output[i] * gain;
-                }
-            } else {
-                result.set(audioData);
-            }
-            
-            return result;
+                loading.classList.remove('active');
+            }, 100);
         }
-
-        function playAudio(audioData, sampleRate) {
-            try {
-                const wavBuffer = float32ToWav(audioData, sampleRate);
-                const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+        
+        // ==================== 頻譜分析檢測 ====================
+        function useSpectralDetection() {
+            if (!audioData) {
+                statusText.textContent = '❌ 請先載入音頻檔案';
+                return;
+            }
+            
+            statusText.textContent = '⏳ 正在進行頻譜分析...';
+            loading.classList.add('active');
+            
+            setTimeout(() => {
+                try {
+                    // 簡單的頻譜分析 - 使用FFT
+                    const n_fft = 2048;
+                    const hop_length = 512;
+                    const n_components = 3;
+                    
+                    // 計算STFT
+                    const stft = [];
+                    for (let i = 0; i < audioData.length - n_fft; i += hop_length) {
+                        const frame = audioData.slice(i, i + n_fft);
+                        // 加窗
+                        const windowed = frame.map((v, j) => v * (0.5 - 0.5 * Math.cos(2 * Math.PI * j / n_fft)));
+                        // 簡化FFT
+                        const fft = [];
+                        for (let k = 0; k < n_fft / 2; k++) {
+                            let real = 0, imag = 0;
+                            for (let n = 0; n < n_fft; n++) {
+                                const angle = -2 * Math.PI * k * n / n_fft;
+                                real += windowed[n] * Math.cos(angle);
+                                imag += windowed[n] * Math.sin(angle);
+                            }
+                            fft.push(Math.sqrt(real * real + imag * imag));
+                        }
+                        stft.push(fft);
+                    }
+                    
+                    // 計算每個頻段的能量變化
+                    const magnitudes = stft.map(frame => frame.reduce((a, b) => a + b, 0) / frame.length);
+                    
+                    // 檢測事件
+                    const mean = magnitudes.reduce((a, b) => a + b, 0) / magnitudes.length;
+                    const std = Math.sqrt(magnitudes.reduce((a, b) => a + (b - mean) * (b - mean), 0) / magnitudes.length);
+                    const threshold = mean + 1.0 * std;
+                    
+                    const times = [];
+                    for (let i = 0; i < magnitudes.length; i++) {
+                        times.push((i * hop_length) / sampleRate);
+                    }
+                    
+                    const detectedEvents = [];
+                    let inEvent = false;
+                    let startIdx = 0;
+                    
+                    for (let i = 0; i < magnitudes.length; i++) {
+                        const isAbove = magnitudes[i] > threshold;
+                        if (isAbove && !inEvent) {
+                            inEvent = true;
+                            startIdx = i;
+                        } else if (!isAbove && inEvent) {
+                            inEvent = false;
+                            const endIdx = i;
+                            const startTime = times[startIdx];
+                            const endTime = times[Math.min(endIdx - 1, times.length - 1)];
+                            if (endTime - startTime >= parseFloat(minDuration.value)) {
+                                detectedEvents.push([startTime, endTime]);
+                            }
+                        }
+                    }
+                    
+                    if (inEvent) {
+                        const endTime = times[times.length - 1];
+                        const startTime = times[startIdx];
+                        if (endTime - startTime >= parseFloat(minDuration.value)) {
+                            detectedEvents.push([startTime, endTime]);
+                        }
+                    }
+                    
+                    events = detectedEvents;
+                    renderEvents();
+                    drawWaveform(audioData, sampleRate);
+                    
+                    statusText.textContent = `✅ 頻譜分析完成！找到 ${events.length} 個事件`;
+                    eventCount.textContent = `(${events.length})`;
+                    exportSection.style.display = 'block';
+                    
+                } catch (error) {
+                    console.error('頻譜分析失敗:', error);
+                    statusText.textContent = '❌ 頻譜分析失敗: ' + error.message;
+                }
+                
+                loading.classList.remove('active');
+            }, 100);
+        }
+        
+        // ==================== 渲染事件列表 ====================
+        function renderEvents() {
+            eventList.innerHTML = '';
+            
+            if (events.length === 0) {
+                eventList.innerHTML = '<div style="text-align:center; padding: 40px; color: #999;">尚未檢測到任何事件</div>';
+                return;
+            }
+            
+            events.forEach(([start, end], index) => {
+                const duration = end - start;
+                const color = eventColors[index % eventColors.length];
+                
+                const card = document.createElement('div');
+                card.className = 'event-card';
+                card.innerHTML = `
+                    <div class="event-number">
+                        <span class="color-tag" style="background: ${color}"></span>
+                        事件 #${index + 1}
+                    </div>
+                    <div class="event-time">⏱️ 開始: ${start.toFixed(3)}秒</div>
+                    <div class="event-time">⏱️ 結束: ${end.toFixed(3)}秒</div>
+                    <div class="event-duration">📏 時長: ${duration.toFixed(3)}秒</div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="playEvent(${index})">▶️ 播放</button>
+                        <button class="btn btn-success" onclick="saveEvent(${index})">💾 儲存</button>
+                        <button class="btn btn-warning" onclick="viewSpectrum(${index})">📊 頻譜</button>
+                    </div>
+                `;
+                eventList.appendChild(card);
+            });
+        }
+        
+        // ==================== 播放事件 ====================
+        function playEvent(index) {
+            if (!audioBuffer) return;
+            
+            const [start, end] = events[index];
+            const offset = 0.3;
+            const startSample = Math.max(0, Math.floor((start - offset) * sampleRate));
+            const endSample = Math.min(audioData.length, Math.floor((end + offset) * sampleRate));
+            const eventData = audioData.slice(startSample, endSample);
+            
+            // 創建新的音頻緩衝
+            const buffer = audioContext.createBuffer(1, eventData.length, sampleRate);
+            buffer.copyToChannel(eventData, 0);
+            
+            // 播放
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioContext.destination);
+            source.start();
+            
+            currentEventIndex = index;
+            playerTitle.textContent = `🎧 播放事件 ${index + 1} (${start.toFixed(2)}s - ${end.toFixed(2)}s)`;
+            
+            // 更新播放器狀態
+            const duration = end - start + offset * 2;
+            let startTime = audioContext.currentTime;
+            
+            // 更新進度條
+            const updateProgress = () => {
+                if (audioContext.state === 'running') {
+                    const elapsed = audioContext.currentTime - startTime;
+                    const progress = Math.min(1, elapsed / duration);
+                    playProgress.style.width = `${progress * 100}%`;
+                    if (progress < 1) {
+                        requestAnimationFrame(updateProgress);
+                    } else {
+                        playProgress.style.width = '0%';
+                    }
+                }
+            };
+            updateProgress();
+            
+            // 事件結束後重置
+            source.onended = () => {
+                playProgress.style.width = '0%';
+            };
+            
+            playerContainer.classList.add('active');
+            statusText.textContent = `▶️ 播放事件 ${index + 1}`;
+        }
+        
+        // ==================== 儲存事件 ====================
+        function saveEvent(index) {
+            if (!audioData) return;
+            
+            const [start, end] = events[index];
+            const startSample = Math.floor(start * sampleRate);
+            const endSample = Math.floor(end * sampleRate);
+            const eventData = audioData.slice(startSample, endSample);
+            
+            // 轉換為WAV格式並下載
+            const wav = audioBufferToWav(eventData, sampleRate);
+            const blob = new Blob([wav], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `event_${index+1}_${start.toFixed(2)}s-${end.toFixed(2)}s.wav`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            statusText.textContent = `💾 事件 ${index+1} 已下載`;
+        }
+        
+        // ==================== 導出所有事件 ====================
+        function exportAllEvents() {
+            if (events.length === 0) {
+                exportResult.textContent = '⚠️ 沒有事件可以導出';
+                return;
+            }
+            
+            let count = 0;
+            events.forEach(([start, end], index) => {
+                const startSample = Math.floor(start * sampleRate);
+                const endSample = Math.floor(end * sampleRate);
+                const eventData = audioData.slice(startSample, endSample);
+                
+                const wav = audioBufferToWav(eventData, sampleRate);
+                const blob = new Blob([wav], { type: 'audio/wav' });
                 const url = URL.createObjectURL(blob);
-                const audio = new Audio(url);
-                audio.play();
-                setTimeout(() => URL.revokeObjectURL(url), 10000);
-            } catch (e) {
-                console.error('播放失敗:', e);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `event_${String(index+1).padStart(3, '0')}_${start.toFixed(2)}s-${end.toFixed(2)}s.wav`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                count++;
+            });
+            
+            exportResult.textContent = `✅ 已導出 ${count} 個事件音頻`;
+            statusText.textContent = `✅ 已導出 ${count} 個事件`;
+        }
+        
+        // ==================== 導出時間線 ====================
+        function exportTimeline() {
+            if (events.length === 0) {
+                exportResult.textContent = '⚠️ 沒有事件可以導出';
+                return;
+            }
+            
+            let text = '音頻事件時間線\n';
+            text += '='.repeat(50) + '\n';
+            text += `總事件數: ${events.length}\n\n`;
+            text += '事件列表:\n';
+            text += '-'.repeat(40) + '\n';
+            
+            events.forEach(([start, end], index) => {
+                const duration = end - start;
+                text += `事件 ${String(index+1).padStart(3, ' ')}: ${start.toFixed(3)}s - ${end.toFixed(3)}s  (時長: ${duration.toFixed(3)}s)\n`;
+            });
+            
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'events_timeline.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            exportResult.textContent = '✅ 時間線已下載';
+        }
+        
+        // ==================== 頻譜查看 ====================
+        function viewSpectrum(index) {
+            const [start, end] = events[index];
+            const startSample = Math.floor(start * sampleRate);
+            const endSample = Math.floor(end * sampleRate);
+            const eventData = audioData.slice(startSample, endSample);
+            
+            // 計算簡單頻譜
+            const n_fft = 1024;
+            const fft = [];
+            for (let i = 0; i < n_fft / 2; i++) {
+                let real = 0, imag = 0;
+                for (let n = 0; n < n_fft && n < eventData.length; n++) {
+                    const angle = -2 * Math.PI * i * n / n_fft;
+                    const windowVal = 0.5 - 0.5 * Math.cos(2 * Math.PI * n / n_fft);
+                    real += eventData[n] * windowVal * Math.cos(angle);
+                    imag += eventData[n] * windowVal * Math.sin(angle);
+                }
+                fft.push(Math.sqrt(real * real + imag * imag));
+            }
+            
+            // 顯示頻譜圖（在新視窗）
+            const win = window.open('', '_blank', 'width=600,height=400');
+            win.document.write(`
+                <html><head><title>事件 ${index+1} 頻譜</title>
+                <style>
+                    body { font-family: Arial; padding: 20px; background: #f8f9ff; }
+                    h3 { color: #333; }
+                    canvas { width: 100%; height: 300px; background: #1a1a2e; border-radius: 10px; }
+                </style>
+                </head><body>
+                <h3>事件 ${index+1} 頻譜分析 (${start.toFixed(2)}s - ${end.toFixed(2)}s)</h3>
+                <canvas id="spec"></canvas>
+                <p style="color: #666; font-size: 12px;">頻率 (Hz) →</p>
+                <button onclick="window.close()" style="padding: 10px 20px; margin-top: 10px;">關閉</button>
+                <script>
+                    const canvas = document.getElementById('spec');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = canvas.parentElement.clientWidth - 40;
+                    canvas.height = 300;
+                    
+                    const data = ${JSON.stringify(fft)};
+                    const maxVal = Math.max(...data);
+                    
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // 繪製背景
+                    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+                    gradient.addColorStop(0, '#1a1a2e');
+                    gradient.addColorStop(0.5, '#16213e');
+                    gradient.addColorStop(1, '#1a1a2e');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // 繪製頻譜
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#667eea';
+                    ctx.lineWidth = 2;
+                    
+                    for (let i = 0; i < canvas.width; i++) {
+                        const idx = Math.floor((i / canvas.width) * data.length);
+                        if (idx >= data.length) break;
+                        const val = data[idx] / maxVal;
+                        const y = canvas.height - val * canvas.height * 0.8;
+                        
+                        if (i === 0) {
+                            ctx.moveTo(i, y);
+                        } else {
+                            ctx.lineTo(i, y);
+                        }
+                    }
+                    ctx.stroke();
+                    
+                    // 填充區域
+                    ctx.lineTo(canvas.width, canvas.height);
+                    ctx.lineTo(0, canvas.height);
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(102, 126, 234, 0.1)';
+                    ctx.fill();
+                <\/script>
+                </body></html>
+            `);
+        }
+        
+        // ==================== 導航功能 ====================
+        function playPrevious() {
+            if (events.length === 0) return;
+            const idx = currentEventIndex > 0 ? currentEventIndex - 1 : events.length - 1;
+            playEvent(idx);
+        }
+        
+        function playNext() {
+            if (events.length === 0) return;
+            const idx = currentEventIndex < events.length - 1 ? currentEventIndex + 1 : 0;
+            playEvent(idx);
+        }
+        
+        function closePlayer() {
+            playerContainer.classList.remove('active');
+            if (audioContext && audioContext.state === 'running') {
+                audioContext.close();
             }
         }
-
-        function float32ToWav(data, sampleRate) {
+        
+        function clearAll() {
+            events = [];
+            eventList.innerHTML = '<div style="text-align:center; padding: 40px; color: #999;">尚未檢測到任何事件</div>';
+            eventCount.textContent = '(0)';
+            exportSection.style.display = 'none';
+            playerContainer.classList.remove('active');
+            drawWaveform(audioData || new Float32Array(1000), sampleRate);
+            statusText.textContent = '🗑️ 已清除所有事件';
+        }
+        
+        // ==================== 工具函數 ====================
+        function audioBufferToWav(buffer, sr) {
             const numChannels = 1;
+            const sampleRate = sr;
             const bitsPerSample = 16;
-            const numSamples = data.length;
-            const dataLength = numSamples * (bitsPerSample / 8);
+            
+            const dataLength = buffer.length * numChannels * (bitsPerSample / 8);
             const headerLength = 44;
             const totalLength = headerLength + dataLength;
-
-            const buffer = new ArrayBuffer(totalLength);
-            const view = new DataView(buffer);
-
-            function writeString(offset, str) {
-                for (let i = 0; i < str.length; i++) {
-                    view.setUint8(offset + i, str.charCodeAt(i));
-                }
-            }
-
-            writeString(0, 'RIFF');
+            
+            const wav = new ArrayBuffer(totalLength);
+            const view = new DataView(wav);
+            
+            // RIFF header
+            writeString(view, 0, 'RIFF');
             view.setUint32(4, totalLength - 8, true);
-            writeString(8, 'WAVE');
-            writeString(12, 'fmt ');
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
             view.setUint32(16, 16, true);
             view.setUint16(20, 1, true);
             view.setUint16(22, numChannels, true);
@@ -882,238 +1083,47 @@
             view.setUint32(28, sampleRate * numChannels * (bitsPerSample / 8), true);
             view.setUint16(32, numChannels * (bitsPerSample / 8), true);
             view.setUint16(34, bitsPerSample, true);
-            writeString(36, 'data');
+            writeString(view, 36, 'data');
             view.setUint32(40, dataLength, true);
-
-            const offset = 44;
-            for (let i = 0; i < numSamples; i++) {
-                const sample = Math.max(-1, Math.min(1, data[i]));
-                const int16 = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-                view.setInt16(offset + i * 2, int16, true);
-            }
-
-            return buffer;
-        }
-
-        // ========== 分離UI ==========
-        function updateSeparateUI() {
-            const fileName = document.getElementById('separateSelect').value;
-            const lowCut = parseInt(document.getElementById('lowCut').value);
-            const highCut = parseInt(document.getElementById('highCut').value);
             
-            document.getElementById('lowCutVal').textContent = `${lowCut} Hz`;
-            document.getElementById('highCutVal').textContent = `${highCut} Hz`;
-            
-            if (fileName && audioFiles[fileName]) {
-                document.getElementById('freqInfo').textContent = 
-                    `🎯 過濾範圍: ${lowCut} - ${highCut} Hz | 音檔: ${fileName}`;
-            }
-        }
-
-        function setPreset(low, high, label, btn) {
-            document.getElementById('lowCut').value = low;
-            document.getElementById('highCut').value = high;
-            document.getElementById('lowCutVal').textContent = `${low} Hz`;
-            document.getElementById('highCutVal').textContent = `${high} Hz`;
-            updateSeparateUI();
-            document.getElementById('freqInfo').textContent = `🎯 ${label} (${low}-${high} Hz)`;
-            
-            // 高亮按鈕
-            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-        }
-
-        function applySeparation() {
-            const fileName = document.getElementById('separateSelect').value;
-            if (!fileName) { alert('請選擇音檔！'); return; }
-            if (!audioFiles[fileName]) { alert('音檔尚未載入！'); return; }
-            
-            const lowCut = parseInt(document.getElementById('lowCut').value);
-            const highCut = parseInt(document.getElementById('highCut').value);
-            const slope = parseInt(document.getElementById('filterSlope').value);
-            
-            if (lowCut >= highCut) { alert('低頻必須小於高頻！'); return; }
-            
-            const audio = audioFiles[fileName];
-            const filtered = filterAudio(audio.data, lowCut, highCut, audio.sampleRate, slope);
-            
-            separatedData[fileName] = {
-                original: audio.data,
-                filtered: filtered,
-                lowCut: lowCut,
-                highCut: highCut,
-                sampleRate: audio.sampleRate
-            };
-            
-            showSeparationResult(fileName);
-        }
-
-        function resetSeparation() {
-            const fileName = document.getElementById('separateSelect').value;
-            if (fileName) delete separatedData[fileName];
-            document.getElementById('separationResult').innerHTML = 
-                '<div class="empty-state"><div class="icon">🔄</div><div>已重置</div></div>';
-            document.getElementById('reviewContent').innerHTML = 
-                '<div class="empty-state"><div class="icon">📭</div><div>請先進行聲音分離</div></div>';
-        }
-
-        function showSeparationResult(fileName) {
-            const data = separatedData[fileName];
-            if (!data) return;
-            
-            const container = document.getElementById('separationResult');
-            
-            // 釋放舊的 URL
-            if (container._origURL) URL.revokeObjectURL(container._origURL);
-            if (container._filtURL) URL.revokeObjectURL(container._filtURL);
-            
-            const origURL = URL.createObjectURL(new Blob([float32ToWav(data.original, data.sampleRate)], { type: 'audio/wav' }));
-            const filtURL = URL.createObjectURL(new Blob([float32ToWav(data.filtered, data.sampleRate)], { type: 'audio/wav' }));
-            
-            container._origURL = origURL;
-            container._filtURL = filtURL;
-            
-            container.innerHTML = `
-                <div style="color:#aaa;font-size:13px;margin-bottom:10px;">
-                    📊 ${fileName} | 過濾: ${data.lowCut}-${data.highCut}Hz
-                </div>
-                <div class="separation-result">
-                    <div class="channel">
-                        <h4>🔊 原始音檔</h4>
-                        <audio controls src="${origURL}"></audio>
-                    </div>
-                    <div class="channel" style="border-color:rgba(72,187,120,0.3);">
-                        <h4 style="color:#48bb78;">🫁 分離後 (${data.lowCut}-${data.highCut}Hz)</h4>
-                        <audio controls src="${filtURL}"></audio>
-                        <div style="margin-top:8px;">
-                            <button class="btn btn-success btn-sm" onclick="useForReview('${fileName}')">✏️ 用於標記</button>
-                            <button class="btn btn-info btn-sm" onclick="downloadFiltered('${fileName}')">💾 下載</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function downloadFiltered(fileName) {
-            const data = separatedData[fileName];
-            if (!data) return;
-            const wav = float32ToWav(data.filtered, data.sampleRate);
-            const blob = new Blob([wav], { type: 'audio/wav' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${fileName}_filtered_${data.lowCut}-${data.highCut}Hz.wav`;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(url), 5000);
-        }
-
-        function useForReview(fileName) {
-            switchTab('tab-review');
-            updateReview(fileName);
-        }
-
-        // ========== 標記複查 ==========
-        function updateReview(fileName) {
-            const container = document.getElementById('reviewContent');
-            const target = fileName || document.getElementById('separateSelect').value;
-            
-            if (!target || !separatedData[target]) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">📭</div>
-                        <div>請先進行聲音分離</div>
-                        <div style="font-size:13px;margin-top:10px;">在「聲音分離」頁面套用分離後，再來這裡標記</div>
-                    </div>
-                `;
-                return;
+            // 寫入數據
+            for (let i = 0; i < buffer.length; i++) {
+                const sample = Math.max(-1, Math.min(1, buffer[i]));
+                const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                view.setInt16(headerLength + i * 2, intSample, true);
             }
             
-            const data = separatedData[target];
-            
-            // 釋放舊的 URL
-            if (container._origURL) URL.revokeObjectURL(container._origURL);
-            if (container._filtURL) URL.revokeObjectURL(container._filtURL);
-            
-            const origURL = URL.createObjectURL(new Blob([float32ToWav(data.original, data.sampleRate)], { type: 'audio/wav' }));
-            const filtURL = URL.createObjectURL(new Blob([float32ToWav(data.filtered, data.sampleRate)], { type: 'audio/wav' }));
-            
-            container._origURL = origURL;
-            container._filtURL = filtURL;
-            
-            container.innerHTML = `
-                <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:15px;border:1px solid rgba(255,255,255,0.05);">
-                    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
-                        <span style="color:#fff;font-weight:600;">🎵 ${target}</span>
-                        <span style="color:#888;font-size:13px;">過濾: ${data.lowCut}-${data.highCut}Hz</span>
-                    </div>
-                    
-                    <div class="review-audio-container">
-                        <div class="audio-box">
-                            <h4>🔊 原始音檔</h4>
-                            <audio controls src="${origURL}"></audio>
-                        </div>
-                        <div class="audio-box" style="border-color:rgba(72,187,120,0.3);">
-                            <h4 style="color:#48bb78;">🫁 分離後 (呼吸頻率範圍)</h4>
-                            <audio controls src="${filtURL}"></audio>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
-                        <button class="btn btn-success" onclick="markAs('breath', '${target}')">✅ 標記為呼吸聲</button>
-                        <button class="btn btn-danger" onclick="markAs('non-breath', '${target}')">❌ 標記為非呼吸聲</button>
-                        <button class="btn btn-info" onclick="showBreathTips()">📖 辨識提示</button>
-                    </div>
-                    
-                    <div id="markResult" style="margin-top:10px;color:#aaa;font-size:14px;"></div>
-                </div>
-            `;
+            return wav;
         }
-
-        function markAs(label, fileName) {
-            const resultDiv = document.getElementById('markResult');
-            const labelMap = { 'breath': '🟢 呼吸聲', 'non-breath': '🔴 非呼吸聲' };
-            const time = new Date().toLocaleTimeString();
-            resultDiv.innerHTML = `
-                ✅ 已標記為 ${labelMap[label]} (${time})
-                <span style="margin-left:15px;color:#666;font-size:12px;">
-                    檔案: ${fileName}
-                </span>
-            `;
-            resultDiv.style.color = label === 'breath' ? '#48bb78' : '#fc8181';
-        }
-
-        function showBreathTips() {
-            alert('💡 呼吸聲辨識提示:\n\n' +
-                  '✅ 呼吸聲特徵:\n' +
-                  '• 頻率約在 100-400 Hz 之間\n' +
-                  '• 聲音平滑、有規律的節奏\n' +
-                  '• 持續時間約 0.2-2 秒\n' +
-                  '• 聽起來像「嘶~」或「呼~」的聲音\n\n' +
-                  '❌ 非呼吸聲常見類型:\n' +
-                  '• 說話聲 - 有語調變化\n' +
-                  '• 環境噪音 - 持續性、無規律\n' +
-                  '• 突發聲 - 短暫、高振幅\n' +
-                  '• 音樂聲 - 有旋律和節奏\n\n' +
-                  '💡 建議: 先聽分離後的聲音，如果聽起來像呼吸聲就標記為「呼吸聲」');
-        }
-
-        // ========== 初始化 ==========
-        console.log('🎯 呼吸音檢測器 - 聲音分離版');
-        console.log('📌 使用步驟:');
-        console.log('  1. 上傳音檔 → 點擊「載入音檔」');
-        console.log('  2. 「頻譜」查看聲音頻率分布');
-        console.log('  3. 點擊頻譜圖可播放該頻率');
-        console.log('  4. 「聲音分離」設定範圍並套用');
-        console.log('  5. 「標記」比較原始/分離聲音');
         
-        // 初始化 canvas 大小
-        const canvas = document.getElementById('spectrumCanvas');
-        canvas.width = canvas.parentElement.clientWidth || 800;
-        canvas.height = 200;
-        window.addEventListener('resize', () => {
-            canvas.width = canvas.parentElement.clientWidth || 800;
-            if (currentSpectrumFile) showSpectrum();
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+        
+        // ==================== 鍵盤快捷鍵 ====================
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') {
+                playPrevious();
+            } else if (e.key === 'ArrowRight') {
+                playNext();
+            } else if (e.key === 'Enter' && events.length > 0) {
+                playEvent(currentEventIndex >= 0 ? currentEventIndex : 0);
+            } else if (e.key === 'Escape') {
+                closePlayer();
+            }
         });
+        
+        // ==================== 響應式調整 ====================
+        window.addEventListener('resize', function() {
+            if (audioData) {
+                drawWaveform(audioData, sampleRate);
+            }
+        });
+        
+        console.log('🎵 音頻事件分類器已載入');
+        console.log('💡 快捷鍵: ← 上一個事件 | → 下一個事件 | Enter 播放 | Esc 關閉');
     </script>
 </body>
 </html>
