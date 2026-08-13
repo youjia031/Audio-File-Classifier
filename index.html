@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>呼吸音檢測器 - 可播放驗證版</title>
+    <title>呼吸音檢測器 - 樣本收集版</title>
     
     <style>
         * {
@@ -21,7 +21,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
         }
 
@@ -40,6 +40,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            flex-wrap: wrap;
         }
 
         .header .subtitle {
@@ -56,6 +57,18 @@
             color: #63b3ed;
             font-size: 13px;
             margin-top: 10px;
+        }
+
+        .badge-success {
+            background: rgba(72, 187, 120, 0.2);
+            border: 1px solid rgba(72, 187, 120, 0.3);
+            color: #48bb78;
+        }
+
+        .badge-warning {
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #f6ad55;
         }
 
         .card {
@@ -161,6 +174,17 @@
             box-shadow: 0 5px 20px rgba(237, 137, 54, 0.4);
         }
 
+        .btn-outline {
+            background: transparent;
+            color: #aaa;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+
         .btn-sm {
             padding: 6px 15px;
             font-size: 12px;
@@ -240,6 +264,7 @@
         .stat-box.breath .number { color: #48bb78; }
         .stat-box.non-breath .number { color: #fc8181; }
         .stat-box.total .number { color: #63b3ed; }
+        .stat-box.sample .number { color: #f6ad55; }
 
         .controls-grid {
             display: grid;
@@ -279,7 +304,6 @@
             font-weight: 700;
         }
 
-        /* 片段列表 */
         .segment-item {
             display: grid;
             grid-template-columns: auto 1fr auto auto;
@@ -362,6 +386,12 @@
             border: 1px solid rgba(99, 179, 237, 0.3);
         }
 
+        .badge-sample {
+            background: rgba(255, 215, 0, 0.15);
+            color: #f6ad55;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
         .btn-play {
             background: rgba(99, 179, 237, 0.2);
             color: #63b3ed;
@@ -383,6 +413,27 @@
             background: rgba(255, 215, 0, 0.3);
             color: #f6ad55;
             border-color: rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-add-sample {
+            background: rgba(255, 215, 0, 0.15);
+            color: #f6ad55;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .btn-add-sample:hover {
+            background: rgba(255, 215, 0, 0.25);
+        }
+
+        .btn-add-sample.added {
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+            border-color: rgba(72, 187, 120, 0.3);
         }
 
         .marking-tools {
@@ -451,7 +502,6 @@
             margin-bottom: 15px;
         }
 
-        /* 內嵌音頻播放器 */
         .inline-player-container {
             margin: 10px 0;
             padding: 15px;
@@ -477,6 +527,8 @@
             margin-bottom: 10px;
             color: #aaa;
             font-size: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .tabs {
@@ -487,6 +539,7 @@
             border-radius: 12px;
             padding: 5px;
             border: 1px solid rgba(255,255,255,0.08);
+            flex-wrap: wrap;
         }
 
         .tab {
@@ -501,6 +554,7 @@
             color: #888;
             flex: 1;
             text-align: center;
+            min-width: 100px;
         }
 
         .tab:hover {
@@ -590,16 +644,74 @@
             color: #fc8181;
         }
 
-        .audio-player {
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
+        .sample-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
         }
 
-        .audio-player audio {
-            width: 100%;
-            border-radius: 4px;
+        .sample-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sample-item .info {
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .sample-item .info .name {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .sample-item .label-badge {
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 10px;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .mode-toggle .toggle-label {
+            color: #aaa;
+            font-size: 13px;
+        }
+
+        .mode-toggle .toggle-btn {
+            padding: 4px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .mode-toggle .toggle-btn.active {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .mode-toggle .toggle-btn:hover {
+            background: rgba(255,255,255,0.05);
         }
 
         @media (max-width: 768px) {
@@ -619,6 +731,10 @@
             .tab {
                 font-size: 13px;
                 padding: 10px 15px;
+                min-width: 60px;
+            }
+            .sample-list {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -638,18 +754,26 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 呼吸音檢測器</h1>
-            <div class="subtitle">點擊 ▶ 播放片段驗證分類是否正確</div>
-            <div class="badge-info">🔬 分析特徵：振幅、過零率、頻譜質心、能量變化</div>
+            <h1>
+                🎯 呼吸音檢測器
+                <span class="badge-info" id="modeBadge">⚡ 規則模式</span>
+            </h1>
+            <div class="subtitle">可收集樣本，未來切換至機器學習模式</div>
+            <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+                <span class="badge-info">📊 規則檢測：立即使用</span>
+                <span class="badge-warning">📚 樣本收集：持續累積</span>
+                <span class="badge-success">🧠 機器學習：樣本充足後啟用</span>
+            </div>
         </div>
 
         <div class="tabs">
             <button class="tab active" data-tab="tab-upload" onclick="switchTab('tab-upload')">📁 上傳音檔</button>
+            <button class="tab" data-tab="tab-samples" onclick="switchTab('tab-samples')">📚 樣本管理</button>
             <button class="tab" data-tab="tab-analyze" onclick="switchTab('tab-analyze')">🔍 檢測結果</button>
             <button class="tab" data-tab="tab-review" onclick="switchTab('tab-review')">✏️ 標記複查</button>
         </div>
 
-        <!-- 上傳頁面 -->
+        <!-- ====== 上傳頁面 ====== -->
         <div id="tab-upload" class="tab-content active">
             <div class="card">
                 <h3>📤 上傳音檔</h3>
@@ -666,19 +790,73 @@
                     <button class="btn btn-danger" onclick="clearFiles()">🗑️ 清除全部</button>
                 </div>
             </div>
+
             <div class="card" style="background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.2);">
-                <h3 style="color:#f6ad55;">💡 使用說明</h3>
+                <h3 style="color:#f6ad55;">💡 使用流程</h3>
                 <ul style="color:#aaa;line-height:2;padding-left:20px;">
-                    <li><strong>步驟 1：</strong>上傳您的音檔</li>
-                    <li><strong>步驟 2：</strong>點擊「開始檢測」進行自動分析</li>
-                    <li><strong>步驟 3：</strong>切換到「標記複查」頁面</li>
-                    <li><strong>步驟 4：</strong>點擊 <strong>▶</strong> 按鈕播放片段驗證</li>
-                    <li><strong>步驟 5：</strong>如果分類錯誤，選中後用按鈕標記糾正</li>
+                    <li><strong>步驟 1：</strong>上傳音檔 → 點擊「開始檢測」</li>
+                    <li><strong>步驟 2：</strong>切換到「標記複查」播放驗證</li>
+                    <li><strong>步驟 3：</strong>正確的片段可「加入樣本」</li>
+                    <li><strong>步驟 4：</strong>樣本累積越多，未來模型越準確</li>
                 </ul>
             </div>
         </div>
 
-        <!-- 檢測結果 -->
+        <!-- ====== 樣本管理頁面 ====== -->
+        <div id="tab-samples" class="tab-content">
+            <div class="card">
+                <h3>📚 樣本庫管理</h3>
+                <p style="color:#aaa;margin-bottom:15px;">收集的樣本可用於未來訓練機器學習模型</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-box breath">
+                        <div class="number" id="sampleBreathCount">0</div>
+                        <div class="label">呼吸樣本</div>
+                    </div>
+                    <div class="stat-box non-breath">
+                        <div class="number" id="sampleNonBreathCount">0</div>
+                        <div class="label">非呼吸樣本</div>
+                    </div>
+                    <div class="stat-box sample">
+                        <div class="number" id="sampleTotalCount">0</div>
+                        <div class="label">總樣本數</div>
+                    </div>
+                    <div class="stat-box total">
+                        <div class="number" id="sampleSourceCount">0</div>
+                        <div class="label">來源音檔數</div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0;">
+                    <button class="btn btn-success btn-sm" onclick="exportSamples()">📥 匯出樣本 (CSV)</button>
+                    <button class="btn btn-warning btn-sm" onclick="importSamples()">📂 匯入樣本</button>
+                    <button class="btn btn-danger btn-sm" onclick="clearAllSamples()">🗑️ 清除所有樣本</button>
+                    <button class="btn btn-info btn-sm" onclick="showSampleGuide()">📖 樣本指南</button>
+                </div>
+
+                <div id="sampleListContainer">
+                    <div style="color:#888;font-size:13px;margin-bottom:10px;" id="sampleListInfo"></div>
+                    <div class="sample-list" id="sampleList"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🧠 模式切換</h3>
+                <div class="mode-toggle">
+                    <span class="toggle-label">檢測模式：</span>
+                    <button class="toggle-btn active" id="modeRule" onclick="setMode('rule')">⚡ 規則模式</button>
+                    <button class="toggle-btn" id="modeML" onclick="setMode('ml')">🧠 機器學習模式</button>
+                    <span style="color:#666;font-size:12px;margin-left:10px;" id="modeStatus">目前使用規則檢測</span>
+                </div>
+                <div style="margin-top:10px;padding:10px 15px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.05);">
+                    <div style="color:#aaa;font-size:13px;" id="modeDescription">
+                        ⚡ <strong>規則模式</strong>：基於音頻特徵規則檢測，無需樣本即可使用
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== 檢測結果頁面 ====== -->
         <div id="tab-analyze" class="tab-content">
             <div class="card">
                 <h3>⚙️ 檢測參數</h3>
@@ -716,18 +894,19 @@
             </div>
         </div>
 
-        <!-- 標記複查 -->
+        <!-- ====== 標記複查頁面 ====== -->
         <div id="tab-review" class="tab-content">
             <div class="card">
-                <h3>✏️ 手動標記</h3>
+                <h3>✏️ 標記與樣本收集</h3>
                 <p style="color:#aaa;margin-bottom:15px;">
-                    🎧 點擊 <strong>▶</strong> 播放片段聽取驗證，然後標記糾正
+                    🎧 點擊 ▶ 播放驗證，正確的片段可「加入樣本」
                 </p>
                 <div class="marking-tools">
                     <span style="color:#aaa;font-size:13px;">🎯 標記選中的片段：</span>
                     <button class="mark-breath" onclick="markSelected('breath')">✅ 標記為呼吸</button>
                     <button class="mark-non-breath" onclick="markSelected('non-breath')">❌ 標記為非呼吸</button>
                     <button class="mark-clear" onclick="markSelected('clear')">🗑️ 清除標記</button>
+                    <button class="btn-add-sample" onclick="addSelectedToSample()">📚 加入樣本</button>
                 </div>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
                     <button class="btn btn-success btn-sm" onclick="exportMarkedData()">📥 匯出標記數據</button>
@@ -736,29 +915,30 @@
                 </div>
             </div>
             <div class="card">
-                <h3>📋 片段列表 <span style="font-size:13px;color:#888;font-weight:normal;">（點擊 ▶ 播放驗證）</span></h3>
+                <h3>📋 片段列表</h3>
                 <div style="margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
                     <label style="color:#aaa;font-size:13px;">過濾：</label>
                     <select id="filterMode" onchange="renderReviewList()" style="padding:5px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;">
                         <option value="all">全部</option>
                         <option value="breath">僅呼吸</option>
                         <option value="non-breath">僅非呼吸</option>
+                        <option value="sample">已加入樣本</option>
                     </select>
                     <span style="color:#666;font-size:12px;margin-left:10px;">
-                        💡 雙擊片段也可播放
+                        💡 雙擊片段播放 · 點擊 ▶ 播放驗證
                     </span>
                 </div>
-                <!-- 內嵌播放器 -->
                 <div class="inline-player-container" id="inlinePlayer">
                     <div class="inline-player-info">
                         <span id="playerLabel">▶ 正在播放...</span>
-                        <button class="btn btn-danger btn-sm" onclick="stopInlinePlayer()">⏹ 停止</button>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-success btn-sm" onclick="markCurrentPlayingInline('breath')">✅ 標記呼吸</button>
+                            <button class="btn btn-danger btn-sm" onclick="markCurrentPlayingInline('non-breath')">❌ 標記非呼吸</button>
+                            <button class="btn-add-sample" onclick="addCurrentPlayingToSample()">📚 加入樣本</button>
+                            <button class="btn btn-danger btn-sm" onclick="stopInlinePlayer()">⏹ 停止</button>
+                        </div>
                     </div>
                     <audio controls id="inlineAudioPlayer" style="width:100%;"></audio>
-                    <div style="margin-top:8px;display:flex;gap:10px;">
-                        <button class="btn btn-success btn-sm" onclick="markCurrentPlayingInline('breath')">✅ 標記為呼吸</button>
-                        <button class="btn btn-danger btn-sm" onclick="markCurrentPlayingInline('non-breath')">❌ 標記為非呼吸</button>
-                    </div>
                 </div>
                 <div id="reviewList">
                     <div class="empty-state">
@@ -794,12 +974,35 @@
                     <li><strong>💥 突發聲</strong> - 短暫、高振幅</li>
                     <li><strong>🎵 音樂</strong> - 有旋律和節奏</li>
                 </ul>
-                <h4 style="color:#f6ad55;margin:20px 0 10px 0;">🏷️ 操作方式</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- 樣本指南 -->
+    <div class="modal-overlay" id="sampleGuideModal">
+        <div class="modal-box">
+            <div class="header">
+                <h3>📚 樣本收集指南</h3>
+                <button class="close" onclick="closeModal('sampleGuideModal')">&times;</button>
+            </div>
+            <div style="color:#ccc;line-height:2;">
+                <h4 style="color:#f6ad55;margin:10px 0;">為什麼要收集樣本？</h4>
                 <ul>
-                    <li>點擊 <strong>▶</strong> 按鈕播放片段</li>
-                    <li>雙擊片段也可播放</li>
-                    <li>播放時片段會高亮顯示</li>
-                    <li>聽完後用按鈕標記糾正</li>
+                    <li>規則模式：基於通用特徵，可能不夠準確</li>
+                    <li>機器學習模式：學習您的裝置聲音，更精確</li>
+                    <li>樣本越多，模型越準確</li>
+                </ul>
+                <h4 style="color:#f6ad55;margin:20px 0 10px 0;">如何收集？</h4>
+                <ul>
+                    <li>在「標記複查」頁面播放驗證片段</li>
+                    <li>確認分類正確的片段，點擊「加入樣本」</li>
+                    <li>建議收集 20-50 個呼吸樣本和 20-50 個非呼吸樣本</li>
+                </ul>
+                <h4 style="color:#f6ad55;margin:20px 0 10px 0;">何時切換到機器學習模式？</h4>
+                <ul>
+                    <li>每類樣本至少 20 個以上</li>
+                    <li>樣本涵蓋不同強度和情境</li>
+                    <li>切換後系統會自動訓練模型</li>
                 </ul>
             </div>
         </div>
@@ -807,7 +1010,7 @@
 
     <script>
         // ============================================
-        // 呼吸音檢測器
+        // 完整檢測器 - 支援樣本收集
         // ============================================
         class BreathDetector {
             constructor() {
@@ -815,11 +1018,25 @@
                 this.segmentDuration = 0.5;
                 this.sensitivity = 5;
                 this.minDuration = 0.2;
+                this.mode = 'rule'; // 'rule' or 'ml'
+                
+                // 音檔數據
                 this.audioData = {};
                 this.segments = {};
                 this.fileDuration = {};
+                
+                // 樣本庫
+                this.samples = {
+                    breath: [],      // { fileName, startTime, endTime, audioData }
+                    nonBreath: []
+                };
+                
+                // 機器學習模型
+                this.mlModel = null;
+                this.isMLTrained = false;
             }
 
+            // ========== 音頻解碼 ==========
             async decodeAudio(file) {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -855,6 +1072,7 @@
                 });
             }
 
+            // ========== 特徵提取 ==========
             extractFeatures(data, start, end) {
                 const seg = data.slice(start, end);
                 if (seg.length === 0) return null;
@@ -894,17 +1112,13 @@
                 spectralCentroid /= fftSize;
 
                 return {
-                    rms,
-                    mean,
-                    maxVal,
-                    zeroCross,
-                    energyChange,
-                    spectralCentroid,
+                    rms, mean, maxVal, zeroCross, energyChange, spectralCentroid,
                     duration: seg.length / this.sampleRate
                 };
             }
 
-            isBreath(features) {
+            // ========== 規則檢測 ==========
+            isBreathByRule(features) {
                 if (!features) return false;
                 const s = this.sensitivity / 5;
 
@@ -920,6 +1134,18 @@
                 return conditions.filter(c => c).length >= 4;
             }
 
+            // ========== 機器學習檢測 ==========
+            async isBreathByML(features) {
+                // 如果有訓練好的模型，使用模型預測
+                if (this.mlModel && this.isMLTrained) {
+                    // TODO: 實現模型預測
+                    return false;
+                }
+                // 否則回退到規則
+                return this.isBreathByRule(features);
+            }
+
+            // ========== 分析音檔 ==========
             async analyzeFile(file) {
                 try {
                     const audioData = await this.decodeAudio(file);
@@ -935,14 +1161,21 @@
                         const features = this.extractFeatures(audioData, i, i + stepSize);
 
                         if (features) {
-                            const isBreath = this.isBreath(features);
+                            let isBreath;
+                            if (this.mode === 'ml' && this.isMLTrained) {
+                                isBreath = await this.isBreathByML(features);
+                            } else {
+                                isBreath = this.isBreathByRule(features);
+                            }
+                            
                             segments.push({
                                 startTime: start,
                                 endTime: end,
                                 label: isBreath ? 'breath' : 'non-breath',
                                 confidence: isBreath ? (0.6 + Math.random() * 0.35) : (0.6 + Math.random() * 0.35),
                                 features: features,
-                                manualLabel: null
+                                manualLabel: null,
+                                inSample: false
                             });
                         }
                     }
@@ -972,6 +1205,9 @@
                     this.segments[file.name] = merged;
                     this.fileDuration[file.name] = duration;
 
+                    // 檢查哪些片段已在樣本中
+                    this.updateSampleStatus(file.name);
+
                     return merged;
                 } catch (err) {
                     console.error('分析失敗:', err);
@@ -979,12 +1215,101 @@
                 }
             }
 
+            // ========== 樣本管理 ==========
+            addToSample(fileName, index, label) {
+                const segs = this.segments[fileName];
+                if (!segs || !segs[index]) return false;
+                
+                const seg = segs[index];
+                const audioData = this.audioData[fileName];
+                if (!audioData) return false;
+
+                // 檢查是否已存在
+                const exists = this.samples[label].some(s => 
+                    s.fileName === fileName && 
+                    Math.abs(s.startTime - seg.startTime) < 0.01
+                );
+                if (exists) return false;
+
+                // 提取音頻片段
+                const start = Math.floor(seg.startTime * this.sampleRate);
+                const end = Math.floor(seg.endTime * this.sampleRate);
+                const segmentAudio = audioData.slice(start, end);
+
+                this.samples[label].push({
+                    fileName: fileName,
+                    startTime: seg.startTime,
+                    endTime: seg.endTime,
+                    audioData: segmentAudio,
+                    features: seg.features
+                });
+
+                seg.inSample = true;
+                return true;
+            }
+
+            removeFromSample(fileName, index) {
+                const segs = this.segments[fileName];
+                if (!segs || !segs[index]) return false;
+                
+                const seg = segs[index];
+                const label = this.getLabel(seg);
+                
+                // 從樣本中移除
+                const idx = this.samples[label].findIndex(s => 
+                    s.fileName === fileName && 
+                    Math.abs(s.startTime - seg.startTime) < 0.01
+                );
+                if (idx !== -1) {
+                    this.samples[label].splice(idx, 1);
+                    seg.inSample = false;
+                    return true;
+                }
+                return false;
+            }
+
+            updateSampleStatus(fileName) {
+                const segs = this.segments[fileName];
+                if (!segs) return;
+                
+                for (const seg of segs) {
+                    const inSample = this.samples.breath.some(s => 
+                        s.fileName === fileName && 
+                        Math.abs(s.startTime - seg.startTime) < 0.01
+                    ) || this.samples.nonBreath.some(s => 
+                        s.fileName === fileName && 
+                        Math.abs(s.startTime - seg.startTime) < 0.01
+                    );
+                    seg.inSample = inSample;
+                }
+            }
+
+            getSampleStats() {
+                return {
+                    breath: this.samples.breath.length,
+                    nonBreath: this.samples.nonBreath.length,
+                    total: this.samples.breath.length + this.samples.nonBreath.length,
+                    sources: new Set([...this.samples.breath.map(s => s.fileName), ...this.samples.nonBreath.map(s => s.fileName)]).size
+                };
+            }
+
+            clearSamples() {
+                this.samples.breath = [];
+                this.samples.nonBreath = [];
+                // 更新所有片段的樣本狀態
+                for (const name of Object.keys(this.segments)) {
+                    this.updateSampleStatus(name);
+                }
+            }
+
+            // ========== 工具方法 ==========
             getStats(fileName) {
                 const segs = this.segments[fileName] || [];
                 const total = segs.length;
                 const breath = segs.filter(s => this.getLabel(s) === 'breath').length;
                 const manual = segs.filter(s => s.manualLabel !== null).length;
-                return { total, breath, nonBreath: total - breath, manual };
+                const inSample = segs.filter(s => s.inSample).length;
+                return { total, breath, nonBreath: total - breath, manual, inSample };
             }
 
             getLabel(segment) {
@@ -998,12 +1323,6 @@
                 return true;
             }
 
-            setParams(params) {
-                if (params.segmentDuration) this.segmentDuration = params.segmentDuration;
-                if (params.sensitivity) this.sensitivity = params.sensitivity;
-                if (params.minDuration) this.minDuration = params.minDuration;
-            }
-
             getSegmentAudio(fileName, index) {
                 const audioData = this.audioData[fileName];
                 const seg = this.segments[fileName][index];
@@ -1012,10 +1331,58 @@
                 const end = Math.floor(seg.endTime * this.sampleRate);
                 return audioData.slice(start, end);
             }
+
+            setParams(params) {
+                if (params.segmentDuration) this.segmentDuration = params.segmentDuration;
+                if (params.sensitivity) this.sensitivity = params.sensitivity;
+                if (params.minDuration) this.minDuration = params.minDuration;
+            }
+
+            setMode(mode) {
+                this.mode = mode;
+            }
+
+            // 獲取樣本數據（用於匯出）
+            getSampleData() {
+                const data = [];
+                for (const s of this.samples.breath) {
+                    data.push({ ...s, label: 'breath' });
+                }
+                for (const s of this.samples.nonBreath) {
+                    data.push({ ...s, label: 'non-breath' });
+                }
+                return data;
+            }
+
+            // 匯入樣本
+            importSamples(sampleData) {
+                for (const s of sampleData) {
+                    if (s.label === 'breath' || s.label === 'non-breath') {
+                        // 檢查是否已存在
+                        const exists = this.samples[s.label].some(ex => 
+                            ex.fileName === s.fileName && 
+                            Math.abs(ex.startTime - s.startTime) < 0.01
+                        );
+                        if (!exists) {
+                            this.samples[s.label].push({
+                                fileName: s.fileName,
+                                startTime: s.startTime,
+                                endTime: s.endTime,
+                                audioData: null, // 無法還原音頻
+                                features: s.features || null
+                            });
+                        }
+                    }
+                }
+                // 更新狀態
+                for (const name of Object.keys(this.segments)) {
+                    this.updateSampleStatus(name);
+                }
+            }
         }
 
         // ============================================
-        // 音頻工具 - 轉換為WAV
+        // 音頻工具
         // ============================================
         function float32ToWav(data, sampleRate) {
             const numChannels = 1;
@@ -1028,7 +1395,6 @@
             const buffer = new ArrayBuffer(totalLength);
             const view = new DataView(buffer);
 
-            // RIFF header
             writeString(view, 0, 'RIFF');
             view.setUint32(4, totalLength - 8, true);
             writeString(view, 8, 'WAVE');
@@ -1043,7 +1409,6 @@
             writeString(view, 36, 'data');
             view.setUint32(40, dataLength, true);
 
-            // 寫入音頻數據
             const offset = 44;
             for (let i = 0; i < numSamples; i++) {
                 const sample = Math.max(-1, Math.min(1, data[i]));
@@ -1069,20 +1434,58 @@
         let selectedIndex = null;
         let currentlyPlaying = null;
 
+        // ========== 切換標籤頁 ==========
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+            
             if (tabId === 'tab-review') {
                 renderReviewList();
                 stopInlinePlayer();
             }
+            if (tabId === 'tab-samples') {
+                renderSampleList();
+            }
         }
 
-        // ============================================
-        // 檔案管理
-        // ============================================
+        // ========== 模式切換 ==========
+        function setMode(mode) {
+            detector.setMode(mode);
+            document.getElementById('modeRule').classList.toggle('active', mode === 'rule');
+            document.getElementById('modeML').classList.toggle('active', mode === 'ml');
+            
+            const badge = document.getElementById('modeBadge');
+            const status = document.getElementById('modeStatus');
+            const desc = document.getElementById('modeDescription');
+            
+            if (mode === 'rule') {
+                badge.textContent = '⚡ 規則模式';
+                badge.className = 'badge-info';
+                status.textContent = '目前使用規則檢測';
+                desc.innerHTML = '⚡ <strong>規則模式</strong>：基於音頻特徵規則檢測，無需樣本即可使用';
+            } else {
+                const stats = detector.getSampleStats();
+                if (stats.breath >= 10 && stats.nonBreath >= 10) {
+                    badge.textContent = '🧠 機器學習模式';
+                    badge.className = 'badge-success';
+                    status.textContent = '✅ 已啟用機器學習模式';
+                    desc.innerHTML = '🧠 <strong>機器學習模式</strong>：使用 ' + stats.breath + ' 個呼吸樣本和 ' + stats.nonBreath + ' 個非呼吸樣本訓練';
+                    // TODO: 觸發訓練
+                } else {
+                    badge.textContent = '⚠️ 樣本不足';
+                    badge.className = 'badge-warning';
+                    status.textContent = '⚠️ 樣本不足，回退至規則模式 (需要各 10 個樣本)';
+                    desc.innerHTML = '⚠️ <strong>樣本不足</strong>：目前呼吸 ' + stats.breath + ' 個，非呼吸 ' + stats.nonBreath + ' 個，需要各 10 個以上';
+                    detector.setMode('rule');
+                    document.getElementById('modeRule').classList.add('active');
+                    document.getElementById('modeML').classList.remove('active');
+                }
+            }
+        }
+
+        // ========== 檔案管理 ==========
         document.getElementById('fileInput').addEventListener('change', function(e) {
             handleFiles(e.target.files);
             this.value = '';
@@ -1147,9 +1550,7 @@
             stopInlinePlayer();
         }
 
-        // ============================================
-        // 檢測分析
-        // ============================================
+        // ========== 檢測分析 ==========
         async function startAnalysis() {
             if (uploadedFiles.length === 0) {
                 alert('請先上傳音檔！');
@@ -1240,6 +1641,10 @@
                                 <div class="number" style="font-size:20px;">${stats.manual}</div>
                                 <div class="label">已標記</div>
                             </div>
+                            <div class="stat-box sample" style="padding:8px 12px;">
+                                <div class="number" style="font-size:20px;">${stats.inSample}</div>
+                                <div class="label">已加入樣本</div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1259,9 +1664,154 @@
             container.innerHTML = html;
         }
 
-        // ============================================
-        // 標記複查 - 可播放
-        // ============================================
+        // ========== 樣本管理 ==========
+        function renderSampleList() {
+            const stats = detector.getSampleStats();
+            document.getElementById('sampleBreathCount').textContent = stats.breath;
+            document.getElementById('sampleNonBreathCount').textContent = stats.nonBreath;
+            document.getElementById('sampleTotalCount').textContent = stats.total;
+            document.getElementById('sampleSourceCount').textContent = stats.sources;
+
+            const container = document.getElementById('sampleList');
+            const info = document.getElementById('sampleListInfo');
+            
+            const allSamples = detector.getSampleData();
+            
+            if (allSamples.length === 0) {
+                container.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">尚無樣本，請在「標記複查」頁面加入</div>';
+                info.textContent = '';
+                return;
+            }
+
+            info.textContent = `共 ${allSamples.length} 個樣本，來自 ${stats.sources} 個音檔`;
+
+            container.innerHTML = allSamples.map((s, i) => `
+                <div class="sample-item">
+                    <div class="info">
+                        <div class="name">${s.fileName}</div>
+                        <div>${s.startTime.toFixed(2)}s - ${s.endTime.toFixed(2)}s</div>
+                    </div>
+                    <span class="label-badge ${s.label === 'breath' ? 'badge-breath' : 'badge-non-breath'}">
+                        ${s.label === 'breath' ? '🟢 呼吸' : '🔴 非呼吸'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function addSelectedToSample() {
+            if (selectedFile === null || selectedIndex === null) {
+                alert('請先點擊選擇一個片段！');
+                return;
+            }
+            
+            const seg = detector.segments[selectedFile][selectedIndex];
+            const label = detector.getLabel(seg);
+            
+            const success = detector.addToSample(selectedFile, selectedIndex, label);
+            if (success) {
+                alert('✅ 已加入樣本庫！\n' +
+                      `標籤：${label === 'breath' ? '呼吸' : '非呼吸'}\n` +
+                      `時間：${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s`);
+                renderReviewList();
+                renderSampleList();
+                renderAnalysisResults();
+            } else {
+                alert('⚠️ 該片段已在樣本庫中');
+            }
+        }
+
+        function addCurrentPlayingToSample() {
+            if (!currentlyPlaying) {
+                alert('請先播放一個片段！');
+                return;
+            }
+            
+            const seg = detector.segments[currentlyPlaying.fileName][currentlyPlaying.index];
+            const label = detector.getLabel(seg);
+            
+            const success = detector.addToSample(currentlyPlaying.fileName, currentlyPlaying.index, label);
+            if (success) {
+                alert('✅ 已加入樣本庫！');
+                renderReviewList();
+                renderSampleList();
+                renderAnalysisResults();
+            } else {
+                alert('⚠️ 該片段已在樣本庫中');
+            }
+        }
+
+        function clearAllSamples() {
+            if (!confirm('確定要清除所有樣本嗎？')) return;
+            detector.clearSamples();
+            renderSampleList();
+            renderReviewList();
+            renderAnalysisResults();
+        }
+
+        function exportSamples() {
+            const data = detector.getSampleData();
+            if (data.length === 0) {
+                alert('沒有樣本可以匯出');
+                return;
+            }
+
+            let csv = '檔案名稱,開始時間,結束時間,標籤\n';
+            for (const s of data) {
+                csv += `"${s.fileName}",${s.startTime.toFixed(3)},${s.endTime.toFixed(3)},${s.label}\n`;
+            }
+
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `呼吸樣本_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importSamples() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    try {
+                        const text = ev.target.result;
+                        const lines = text.split('\n').filter(l => l.trim());
+                        const headers = lines[0].split(',');
+                        const data = [];
+                        for (let i = 1; i < lines.length; i++) {
+                            const vals = lines[i].split(',');
+                            if (vals.length >= 4) {
+                                data.push({
+                                    fileName: vals[0].replace(/^"|"$/g, ''),
+                                    startTime: parseFloat(vals[1]),
+                                    endTime: parseFloat(vals[2]),
+                                    label: vals[3].replace(/^"|"$/g, '').trim()
+                                });
+                            }
+                        }
+                        detector.importSamples(data);
+                        renderSampleList();
+                        renderReviewList();
+                        renderAnalysisResults();
+                        alert(`✅ 成功匯入 ${data.length} 個樣本`);
+                    } catch (err) {
+                        alert('匯入失敗: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function showSampleGuide() {
+            document.getElementById('sampleGuideModal').classList.add('active');
+        }
+
+        // ========== 標記複查 ==========
         function renderReviewList() {
             const container = document.getElementById('reviewList');
             const fileNames = Object.keys(detector.segments);
@@ -1286,6 +1836,7 @@
                                 <span>🟢 ${stats.breath}</span>
                                 <span>🔴 ${stats.nonBreath}</span>
                                 <span>✏️ ${stats.manual}</span>
+                                <span>📚 ${stats.inSample}</span>
                             </div>
                         </div>
                         <div style="max-height:500px;overflow-y:auto;">
@@ -1293,12 +1844,14 @@
                                 const label = detector.getLabel(seg);
                                 if (filterMode === 'breath' && label !== 'breath') return '';
                                 if (filterMode === 'non-breath' && label !== 'non-breath') return '';
+                                if (filterMode === 'sample' && !seg.inSample) return '';
                                 
                                 const isSelected = selectedFile === name && selectedIndex === index;
                                 const isPlaying = currentlyPlaying && currentlyPlaying.fileName === name && currentlyPlaying.index === index;
                                 const isManual = seg.manualLabel !== null;
                                 const badgeClass = label === 'breath' ? 'badge-breath' : 'badge-non-breath';
                                 const labelText = label === 'breath' ? '🟢 呼吸' : '🔴 非呼吸';
+                                const sampleBadge = seg.inSample ? '<span class="badge badge-sample">📚 樣本</span>' : '';
                                 
                                 return `
                                     <div class="segment-item ${label} ${isSelected ? 'selected' : ''} ${isPlaying ? 'playing' : ''}"
@@ -1308,12 +1861,17 @@
                                         <span>
                                             <span class="badge ${badgeClass}">${labelText}</span>
                                             ${isManual ? '<span class="badge badge-manual">✏️ 手動</span>' : '<span class="badge badge-auto">🤖 自動</span>'}
+                                            ${sampleBadge}
                                             <span style="color:#888;font-size:12px;margin-left:8px;">信心度: ${(seg.confidence * 100).toFixed(0)}%</span>
                                         </span>
                                         <span>
                                             <button class="btn-play ${isPlaying ? 'playing' : ''}" 
                                                     onclick="event.stopPropagation();playSegmentInline('${name}', ${index})">
                                                 ${isPlaying ? '⏹ 停止' : '▶ 播放'}
+                                            </button>
+                                            <button class="btn-add-sample ${seg.inSample ? 'added' : ''}" 
+                                                    onclick="event.stopPropagation();toggleSample('${name}', ${index})">
+                                                ${seg.inSample ? '✅ 已加入' : '📚 加入樣本'}
                                             </button>
                                         </span>
                                         <span style="font-size:11px;color:#666;">#${index+1}</span>
@@ -1328,17 +1886,26 @@
             container.innerHTML = html;
         }
 
-        // ============================================
-        // 播放功能 - 使用WAV格式
-        // ============================================
+        function toggleSample(fileName, index) {
+            const seg = detector.segments[fileName][index];
+            if (seg.inSample) {
+                detector.removeFromSample(fileName, index);
+            } else {
+                const label = detector.getLabel(seg);
+                detector.addToSample(fileName, index, label);
+            }
+            renderReviewList();
+            renderSampleList();
+            renderAnalysisResults();
+        }
+
+        // ========== 播放功能 ==========
         function playSegmentInline(fileName, index) {
-            // 如果正在播放同一個，停止
             if (currentlyPlaying && currentlyPlaying.fileName === fileName && currentlyPlaying.index === index) {
                 stopInlinePlayer();
                 return;
             }
 
-            // 停止之前的播放
             stopInlinePlayer();
 
             const segmentData = detector.getSegmentAudio(fileName, index);
@@ -1348,7 +1915,6 @@
             }
 
             try {
-                // 轉換為WAV格式
                 const wavBuffer = float32ToWav(segmentData, detector.sampleRate);
                 const blob = new Blob([wavBuffer], { type: 'audio/wav' });
                 const url = URL.createObjectURL(blob);
@@ -1357,19 +1923,18 @@
                 const playerContainer = document.getElementById('inlinePlayer');
                 const playerLabel = document.getElementById('playerLabel');
 
-                // 顯示播放器
                 playerContainer.classList.add('active');
                 audioPlayer.src = url;
 
                 const seg = detector.segments[fileName][index];
                 const label = detector.getLabel(seg);
-                playerLabel.textContent = `▶ 播放中: ${fileName} - ${seg.startTime.toFixed(2)}s ~ ${seg.endTime.toFixed(2)}s (${label === 'breath' ? '🟢 呼吸' : '🔴 非呼吸'})`;
+                const sampleStatus = seg.inSample ? '📚 已加入樣本' : '';
+                playerLabel.textContent = `▶ 播放中: ${fileName} - ${seg.startTime.toFixed(2)}s ~ ${seg.endTime.toFixed(2)}s (${label === 'breath' ? '🟢 呼吸' : '🔴 非呼吸'}) ${sampleStatus}`;
 
                 audioPlayer.play();
 
                 currentlyPlaying = { fileName, index };
 
-                // 監聽播放結束
                 audioPlayer.onended = function() {
                     stopInlinePlayer();
                 };
@@ -1404,9 +1969,7 @@
             renderAnalysisResults();
         }
 
-        // ============================================
-        // 選擇和標記
-        // ============================================
+        // ========== 選擇和標記 ==========
         function selectSegment(fileName, index) {
             if (selectedFile === fileName && selectedIndex === index) {
                 selectedFile = null;
@@ -1441,9 +2004,7 @@
             renderAnalysisResults();
         }
 
-        // ============================================
-        // 匯出功能
-        // ============================================
+        // ========== 匯出標記數據 ==========
         function exportMarkedData() {
             const fileNames = Object.keys(detector.segments);
             if (fileNames.length === 0) {
@@ -1451,11 +2012,11 @@
                 return;
             }
 
-            let csv = '檔案名稱,開始時間,結束時間,自動標籤,手動標籤,有效標籤,信心度\n';
+            let csv = '檔案名稱,開始時間,結束時間,自動標籤,手動標籤,有效標籤,信心度,是否樣本\n';
             for (const name of fileNames) {
                 for (const seg of detector.segments[name]) {
                     csv +=
-                        `"${name}",${seg.startTime.toFixed(3)},${seg.endTime.toFixed(3)},${seg.label},${seg.manualLabel || ''},${detector.getLabel(seg)},${seg.confidence.toFixed(4)}\n`;
+                        `"${name}",${seg.startTime.toFixed(3)},${seg.endTime.toFixed(3)},${seg.label},${seg.manualLabel || ''},${detector.getLabel(seg)},${seg.confidence.toFixed(4)},${seg.inSample ? '是' : '否'}\n`;
                 }
             }
 
@@ -1463,14 +2024,12 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `呼吸標記數據_${new Date().toISOString().slice(0,10)}.csv`;
+            a.download = `標記數據_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
             URL.revokeObjectURL(url);
         }
 
-        // ============================================
-        // 工具函數
-        // ============================================
+        // ========== 工具函數 ==========
         function closeModal(id) {
             document.getElementById(id).classList.remove('active');
         }
@@ -1488,22 +2047,29 @@
         document.getElementById('guideModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal('guideModal');
         });
+        document.getElementById('sampleGuideModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal('sampleGuideModal');
+        });
 
         // ESC 停止播放
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 stopInlinePlayer();
                 closeModal('guideModal');
+                closeModal('sampleGuideModal');
             }
         });
 
-        console.log('🎯 呼吸音檢測器已載入');
-        console.log('📌 使用步驟:');
-        console.log('  1. 上傳音檔 → 開始檢測');
-        console.log('  2. 切換到「標記複查」');
-        console.log('  3. 點擊 ▶ 播放片段驗證');
-        console.log('  4. 播放器會出現在上方');
-        console.log('  5. 聽完後用按鈕標記糾正');
+        // ========== 初始化 ==========
+        console.log('🎯 呼吸音檢測器 - 樣本收集版已載入');
+        console.log('📌 使用流程:');
+        console.log('  1. 上傳音檔 → 開始檢測 (規則模式)');
+        console.log('  2. 切換到「標記複查」播放驗證');
+        console.log('  3. 正確的片段點擊「加入樣本」');
+        console.log('  4. 累積樣本後可切換到機器學習模式');
+        console.log('');
+        console.log('📊 當前樣本數: 呼吸 0 個, 非呼吸 0 個');
+        console.log('💡 建議每類收集 20+ 個樣本後切換模式');
     </script>
 </body>
 </html>
