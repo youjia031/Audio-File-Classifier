@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>呼吸音檢測器 - 修復版</title>
+    <title>呼吸音檢測器 - 可播放驗證版</title>
     
     <style>
         * {
@@ -151,6 +151,16 @@
             box-shadow: 0 5px 20px rgba(66, 153, 225, 0.4);
         }
 
+        .btn-warning {
+            background: linear-gradient(135deg, #f6ad55, #ed8936);
+            color: #fff;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(237, 137, 54, 0.4);
+        }
+
         .btn-sm {
             padding: 6px 15px;
             font-size: 12px;
@@ -249,7 +259,8 @@
             color: #aaa;
         }
 
-        .control-group input, .control-group select {
+        .control-group input,
+        .control-group select {
             padding: 8px 12px;
             border-radius: 6px;
             border: 1px solid rgba(255,255,255,0.1);
@@ -268,13 +279,14 @@
             font-weight: 700;
         }
 
+        /* 片段列表 - 可點擊播放 */
         .segment-item {
             display: grid;
-            grid-template-columns: auto 1fr auto;
-            gap: 15px;
-            padding: 10px 15px;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 12px;
+            padding: 12px 15px;
             margin: 4px 0;
-            border-radius: 6px;
+            border-radius: 8px;
             background: rgba(255,255,255,0.03);
             align-items: center;
             transition: all 0.2s;
@@ -284,6 +296,7 @@
 
         .segment-item:hover {
             background: rgba(255,255,255,0.08);
+            transform: translateX(4px);
         }
 
         .segment-item.breath {
@@ -299,10 +312,22 @@
             border-color: #667eea;
         }
 
+        .segment-item.playing {
+            background: rgba(255, 215, 0, 0.15);
+            border-color: #f6ad55;
+            animation: pulse-glow 0.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.2); }
+            100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+        }
+
         .segment-time {
             color: #aaa;
             font-size: 13px;
-            min-width: 120px;
+            min-width: 130px;
+            font-weight: 500;
         }
 
         .badge {
@@ -337,6 +362,29 @@
             border: 1px solid rgba(99, 179, 237, 0.3);
         }
 
+        .btn-play {
+            background: rgba(99, 179, 237, 0.2);
+            color: #63b3ed;
+            border: 1px solid rgba(99, 179, 237, 0.3);
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .btn-play:hover {
+            background: rgba(99, 179, 237, 0.3);
+            transform: scale(1.05);
+        }
+
+        .btn-play.playing {
+            background: rgba(255, 215, 0, 0.3);
+            color: #f6ad55;
+            border-color: rgba(255, 215, 0, 0.4);
+        }
+
         .marking-tools {
             display: flex;
             gap: 10px;
@@ -356,6 +404,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            transition: all 0.2s;
         }
 
         .mark-breath:hover {
@@ -370,6 +419,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            transition: all 0.2s;
         }
 
         .mark-non-breath:hover {
@@ -399,6 +449,75 @@
         .empty-state .icon {
             font-size: 50px;
             margin-bottom: 15px;
+        }
+
+        /* 內嵌音頻播放器（小） */
+        .inline-player {
+            display: none;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+        }
+
+        .inline-player audio {
+            width: 100%;
+            border-radius: 4px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 5px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .tab {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: transparent;
+            color: #888;
+            flex: 1;
+            text-align: center;
+        }
+
+        .tab:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .modal-overlay {
@@ -469,53 +588,24 @@
             border-radius: 4px;
         }
 
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 5px;
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .tab {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: transparent;
-            color: #888;
-            flex: 1;
-            text-align: center;
-        }
-
-        .tab:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.05);
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #fff;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 24px;
+            }
+            .segment-item {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            .tab {
+                font-size: 13px;
+                padding: 10px 15px;
+            }
         }
 
         ::-webkit-scrollbar {
@@ -529,21 +619,13 @@
             background: rgba(102, 126, 234, 0.3);
             border-radius: 3px;
         }
-
-        @media (max-width: 768px) {
-            .header h1 { font-size: 24px; }
-            .segment-item { grid-template-columns: 1fr; gap: 5px; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .controls-grid { grid-template-columns: 1fr; }
-            .tab { font-size: 13px; padding: 10px 15px; }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🎯 呼吸音檢測器</h1>
-            <div class="subtitle">基於音頻特徵分析，無需訓練樣本</div>
+            <div class="subtitle">點擊片段旁的 ▶ 按鈕即可播放驗證</div>
             <div class="badge-info">🔬 分析特徵：振幅、過零率、頻譜質心、能量變化</div>
         </div>
 
@@ -575,8 +657,9 @@
                 <ul style="color:#aaa;line-height:2;padding-left:20px;">
                     <li><strong>步驟 1：</strong>上傳您的音檔</li>
                     <li><strong>步驟 2：</strong>點擊「開始檢測」進行自動分析</li>
-                    <li><strong>步驟 3：</strong>切換到「標記複查」聽取並驗證結果</li>
-                    <li><strong>步驟 4：</strong>手動標記錯誤的片段</li>
+                    <li><strong>步驟 3：</strong>切換到「標記複查」頁面</li>
+                    <li><strong>步驟 4：</strong>點擊 <strong>▶</strong> 按鈕播放片段驗證</li>
+                    <li><strong>步驟 5：</strong>如果分類錯誤，選中後用按鈕標記糾正</li>
                 </ul>
             </div>
         </div>
@@ -623,7 +706,9 @@
         <div id="tab-review" class="tab-content">
             <div class="card">
                 <h3>✏️ 手動標記</h3>
-                <p style="color:#aaa;margin-bottom:15px;">點擊片段選中，雙擊播放驗證，然後標記糾正</p>
+                <p style="color:#aaa;margin-bottom:15px;">
+                    🎧 點擊 <strong>▶</strong> 播放片段聽取驗證，然後標記糾正
+                </p>
                 <div class="marking-tools">
                     <span style="color:#aaa;font-size:13px;">🎯 標記選中的片段：</span>
                     <button class="mark-breath" onclick="markSelected('breath')">✅ 標記為呼吸</button>
@@ -637,14 +722,17 @@
                 </div>
             </div>
             <div class="card">
-                <h3>📋 片段列表</h3>
-                <div style="margin-bottom:10px;">
+                <h3>📋 片段列表 <span style="font-size:13px;color:#888;font-weight:normal;">（點擊 ▶ 播放驗證）</span></h3>
+                <div style="margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
                     <label style="color:#aaa;font-size:13px;">過濾：</label>
                     <select id="filterMode" onchange="renderReviewList()" style="padding:5px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;">
                         <option value="all">全部</option>
                         <option value="breath">僅呼吸</option>
                         <option value="non-breath">僅非呼吸</option>
                     </select>
+                    <span style="color:#666;font-size:12px;margin-left:10px;">
+                        💡 雙擊片段也可播放
+                    </span>
                 </div>
                 <div id="reviewList">
                     <div class="empty-state">
@@ -667,6 +755,10 @@
             <div class="audio-player">
                 <audio controls id="audioPlayer" style="width:100%;"></audio>
                 <div style="margin-top:10px;color:#aaa;font-size:14px;" id="audioInfo">載入中...</div>
+                <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+                    <button class="btn btn-success btn-sm" onclick="markCurrentPlaying('breath')">✅ 標記為呼吸</button>
+                    <button class="btn btn-danger btn-sm" onclick="markCurrentPlaying('non-breath')">❌ 標記為非呼吸</button>
+                </div>
             </div>
         </div>
     </div>
@@ -696,9 +788,10 @@
                 </ul>
                 <h4 style="color:#f6ad55;margin:20px 0 10px 0;">🏷️ 操作方式</h4>
                 <ul>
-                    <li>點擊片段可以選中</li>
-                    <li>雙擊片段可以播放</li>
-                    <li>選中後使用按鈕標記</li>
+                    <li>點擊 <strong>▶</strong> 按鈕播放片段</li>
+                    <li>雙擊片段也可播放</li>
+                    <li>播放時片段會高亮顯示</li>
+                    <li>聽完後用按鈕標記糾正</li>
                 </ul>
             </div>
         </div>
@@ -706,7 +799,7 @@
 
     <script>
         // ============================================
-        // 呼吸音檢測器 - 核心邏輯
+        // 呼吸音檢測器
         // ============================================
         class BreathDetector {
             constructor() {
@@ -717,7 +810,6 @@
                 this.audioData = {};
                 this.segments = {};
                 this.fileDuration = {};
-                this.files = [];
             }
 
             async decodeAudio(file) {
@@ -725,10 +817,10 @@
                     const reader = new FileReader();
                     reader.onload = async (e) => {
                         try {
-                            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            const audioContext = new(window.AudioContext || window.webkitAudioContext)();
                             const buffer = await audioContext.decodeAudioData(e.target.result);
                             let data = buffer.getChannelData(0);
-                            
+
                             if (buffer.sampleRate !== this.sampleRate) {
                                 const ratio = buffer.sampleRate / this.sampleRate;
                                 const newLen = Math.floor(data.length / ratio);
@@ -758,19 +850,19 @@
             extractFeatures(data, start, end) {
                 const seg = data.slice(start, end);
                 if (seg.length === 0) return null;
-                
+
                 const rms = Math.sqrt(seg.reduce((s, v) => s + v * v, 0) / seg.length);
                 const mean = seg.reduce((s, v) => s + v, 0) / seg.length;
                 const maxVal = Math.max(...seg.map(Math.abs));
-                
+
                 let zeroCross = 0;
                 for (let i = 1; i < seg.length; i++) {
-                    if ((seg[i] > 0 && seg[i-1] < 0) || (seg[i] < 0 && seg[i-1] > 0)) {
+                    if ((seg[i] > 0 && seg[i - 1] < 0) || (seg[i] < 0 && seg[i - 1] > 0)) {
                         zeroCross++;
                     }
                 }
                 zeroCross /= seg.length;
-                
+
                 let energyChange = 0;
                 const frameSize = Math.floor(seg.length / 20);
                 for (let i = frameSize; i < seg.length; i += frameSize) {
@@ -781,7 +873,7 @@
                     energyChange += Math.abs(currEnergy - prevEnergy);
                 }
                 energyChange /= 20;
-                
+
                 let spectralCentroid = 0;
                 let totalEnergy = 0;
                 const fftSize = 64;
@@ -792,9 +884,14 @@
                 }
                 if (totalEnergy > 0) spectralCentroid /= totalEnergy;
                 spectralCentroid /= fftSize;
-                
+
                 return {
-                    rms, mean, maxVal, zeroCross, energyChange, spectralCentroid,
+                    rms,
+                    mean,
+                    maxVal,
+                    zeroCross,
+                    energyChange,
+                    spectralCentroid,
                     duration: seg.length / this.sampleRate
                 };
             }
@@ -802,7 +899,7 @@
             isBreath(features) {
                 if (!features) return false;
                 const s = this.sensitivity / 5;
-                
+
                 const conditions = [
                     features.rms > 0.02 * s && features.rms < 0.5,
                     features.zeroCross < 0.15 * s,
@@ -811,7 +908,7 @@
                     features.duration >= this.minDuration,
                     features.maxVal > 0.03 * s
                 ];
-                
+
                 return conditions.filter(c => c).length >= 4;
             }
 
@@ -819,16 +916,16 @@
                 try {
                     const audioData = await this.decodeAudio(file);
                     const duration = audioData.length / this.sampleRate;
-                    
+
                     const stepSize = Math.floor(this.sampleRate * this.segmentDuration);
                     const hopSize = Math.floor(stepSize / 2);
                     const segments = [];
-                    
+
                     for (let i = 0; i < audioData.length - stepSize; i += hopSize) {
                         const start = i / this.sampleRate;
                         const end = (i + stepSize) / this.sampleRate;
                         const features = this.extractFeatures(audioData, i, i + stepSize);
-                        
+
                         if (features) {
                             const isBreath = this.isBreath(features);
                             segments.push({
@@ -841,14 +938,14 @@
                             });
                         }
                     }
-                    
+
                     // 合併相鄰的呼吸片段
                     const merged = [];
                     let current = null;
                     for (const seg of segments) {
                         if (seg.label === 'breath') {
                             if (!current) {
-                                current = { ...seg };
+                                current = {...seg};
                             } else {
                                 current.endTime = seg.endTime;
                                 current.confidence = Math.max(current.confidence, seg.confidence);
@@ -862,11 +959,11 @@
                         }
                     }
                     if (current) merged.push(current);
-                    
+
                     this.audioData[file.name] = audioData;
                     this.segments[file.name] = merged;
                     this.fileDuration[file.name] = duration;
-                    
+
                     return merged;
                 } catch (err) {
                     console.error('分析失敗:', err);
@@ -898,6 +995,15 @@
                 if (params.sensitivity) this.sensitivity = params.sensitivity;
                 if (params.minDuration) this.minDuration = params.minDuration;
             }
+
+            getSegmentAudio(fileName, index) {
+                const audioData = this.audioData[fileName];
+                const seg = this.segments[fileName][index];
+                if (!audioData || !seg) return null;
+                const start = Math.floor(seg.startTime * this.sampleRate);
+                const end = Math.floor(seg.endTime * this.sampleRate);
+                return audioData.slice(start, end);
+            }
         }
 
         // ============================================
@@ -907,6 +1013,7 @@
         let uploadedFiles = [];
         let selectedFile = null;
         let selectedIndex = null;
+        let currentlyPlaying = null; // { fileName, index }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -925,7 +1032,8 @@
         });
 
         const uploadZone = document.getElementById('uploadZone');
-        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+        uploadZone.addEventListener('dragover', (e) => { e.preventDefault();
+            uploadZone.classList.add('dragover'); });
         uploadZone.addEventListener('dragleave', () => { uploadZone.classList.remove('dragover'); });
         uploadZone.addEventListener('drop', (e) => {
             e.preventDefault();
@@ -975,12 +1083,10 @@
             detector.segments = {};
             detector.fileDuration = {};
             renderFileList();
-            document.getElementById('analysisResult').innerHTML = `
-                <div class="empty-state"><div class="icon">📊</div><div>尚未進行檢測</div></div>
-            `;
-            document.getElementById('reviewList').innerHTML = `
-                <div class="empty-state"><div class="icon">📭</div><div>尚無檢測結果</div></div>
-            `;
+            document.getElementById('analysisResult').innerHTML =
+                `<div class="empty-state"><div class="icon">📊</div><div>尚未進行檢測</div></div>`;
+            document.getElementById('reviewList').innerHTML =
+                `<div class="empty-state"><div class="icon">📭</div><div>尚無檢測結果</div></div>`;
         }
 
         // ============================================
@@ -996,7 +1102,6 @@
             btn.disabled = true;
             btn.textContent = '⏳ 分析中...';
 
-            // 更新參數
             detector.setParams({
                 segmentDuration: parseFloat(document.getElementById('segDuration').value),
                 sensitivity: parseInt(document.getElementById('sensitivity').value),
@@ -1019,7 +1124,7 @@
                 const progress = ((i + 1) / uploadedFiles.length * 100);
                 document.getElementById('analysisProgress').style.width = progress + '%';
                 document.getElementById('analysisProgress').textContent = Math.round(progress) + '%';
-                
+
                 try {
                     await detector.analyzeFile(file);
                 } catch (e) {
@@ -1028,10 +1133,9 @@
                 }
             }
 
-            // 顯示結果
             renderAnalysisResults();
             switchTab('tab-analyze');
-            
+
             btn.disabled = false;
             btn.textContent = '🔍 開始檢測';
         }
@@ -1039,26 +1143,26 @@
         function renderAnalysisResults() {
             const container = document.getElementById('analysisResult');
             const fileNames = Object.keys(detector.segments);
-            
+
             if (fileNames.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state"><div class="icon">❌</div><div>沒有檢測結果</div></div>
-                `;
+                container.innerHTML = `<div class="empty-state"><div class="icon">❌</div><div>沒有檢測結果</div></div>`;
                 return;
             }
 
-            let html = `<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
+            let html =
+                `<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
                 <span style="color:#aaa;">共 ${fileNames.length} 個音檔</span>
                 <button class="btn btn-info btn-sm" onclick="switchTab('tab-review')">✏️ 前往標記複查</button>
             </div>`;
 
-            let totalBreath = 0, totalSegs = 0;
+            let totalBreath = 0,
+                totalSegs = 0;
 
             for (const name of fileNames) {
                 const stats = detector.getStats(name);
                 totalBreath += stats.breath;
                 totalSegs += stats.total;
-                
+
                 html += `
                     <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:15px;margin-bottom:10px;border-left:4px solid ${stats.breath > 0 ? '#48bb78' : '#fc8181'};">
                         <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
@@ -1098,16 +1202,14 @@
         }
 
         // ============================================
-        // 標記複查
+        // 標記複查 - 可播放
         // ============================================
         function renderReviewList() {
             const container = document.getElementById('reviewList');
             const fileNames = Object.keys(detector.segments);
-            
+
             if (fileNames.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state"><div class="icon">📭</div><div>尚無檢測結果</div></div>
-                `;
+                container.innerHTML = `<div class="empty-state"><div class="icon">📭</div><div>尚無檢測結果</div></div>`;
                 return;
             }
 
@@ -1117,7 +1219,7 @@
             for (const name of fileNames) {
                 const segs = detector.segments[name];
                 const stats = detector.getStats(name);
-                
+
                 html += `
                     <div style="margin-bottom:20px;background:rgba(255,255,255,0.03);border-radius:8px;padding:15px;border:1px solid rgba(255,255,255,0.05);">
                         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
@@ -1128,21 +1230,22 @@
                                 <span>✏️ ${stats.manual}</span>
                             </div>
                         </div>
-                        <div style="max-height:400px;overflow-y:auto;">
+                        <div style="max-height:500px;overflow-y:auto;">
                             ${segs.map((seg, index) => {
                                 const label = detector.getLabel(seg);
                                 if (filterMode === 'breath' && label !== 'breath') return '';
                                 if (filterMode === 'non-breath' && label !== 'non-breath') return '';
                                 
                                 const isSelected = selectedFile === name && selectedIndex === index;
+                                const isPlaying = currentlyPlaying && currentlyPlaying.fileName === name && currentlyPlaying.index === index;
                                 const isManual = seg.manualLabel !== null;
                                 const badgeClass = label === 'breath' ? 'badge-breath' : 'badge-non-breath';
                                 const labelText = label === 'breath' ? '🟢 呼吸' : '🔴 非呼吸';
                                 
                                 return `
-                                    <div class="segment-item ${label} ${isSelected ? 'selected' : ''}"
+                                    <div class="segment-item ${label} ${isSelected ? 'selected' : ''} ${isPlaying ? 'playing' : ''}"
                                          onclick="selectSegment('${name}', ${index})"
-                                         ondblclick="playSegment('${name}', ${index})">
+                                         ondblclick="playSegmentInline('${name}', ${index})">
                                         <span class="segment-time">${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s</span>
                                         <span>
                                             <span class="badge ${badgeClass}">${labelText}</span>
@@ -1150,11 +1253,12 @@
                                             <span style="color:#888;font-size:12px;margin-left:8px;">信心度: ${(seg.confidence * 100).toFixed(0)}%</span>
                                         </span>
                                         <span>
-                                            <button class="btn btn-info btn-sm" onclick="event.stopPropagation();playSegment('${name}', ${index})" 
-                                                    style="padding:2px 10px;border:none;border-radius:4px;font-size:11px;cursor:pointer;background:rgba(99,179,237,0.2);color:#63b3ed;">
-                                                ▶
+                                            <button class="btn-play ${isPlaying ? 'playing' : ''}" 
+                                                    onclick="event.stopPropagation();playSegmentInline('${name}', ${index})">
+                                                ${isPlaying ? '⏹ 停止' : '▶ 播放'}
                                             </button>
                                         </span>
+                                        <span style="font-size:11px;color:#666;">#${index+1}</span>
                                     </div>
                                 `;
                             }).join('')}
@@ -1166,6 +1270,70 @@
             container.innerHTML = html;
         }
 
+        // ============================================
+        // 播放功能 - 內嵌播放
+        // ============================================
+        let audioElement = null;
+
+        function playSegmentInline(fileName, index) {
+            // 如果正在播放同一個，停止
+            if (currentlyPlaying && currentlyPlaying.fileName === fileName && currentlyPlaying.index === index) {
+                stopPlayback();
+                return;
+            }
+
+            // 停止之前的播放
+            stopPlayback();
+
+            const segmentData = detector.getSegmentAudio(fileName, index);
+            if (!segmentData) {
+                alert('無法取得音頻數據');
+                return;
+            }
+
+            try {
+                // 創建音頻播放
+                const blob = new Blob([segmentData.buffer], { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+
+                if (!audioElement) {
+                    audioElement = new Audio();
+                    audioElement.onended = function() {
+                        stopPlayback();
+                        renderReviewList();
+                    };
+                }
+
+                audioElement.src = url;
+                audioElement.play();
+
+                currentlyPlaying = { fileName, index };
+                renderReviewList();
+
+                // 更新播放按鈕狀態
+                document.querySelectorAll('.btn-play').forEach(btn => {
+                    btn.textContent = '▶ 播放';
+                    btn.classList.remove('playing');
+                });
+
+            } catch (e) {
+                console.error('播放失敗:', e);
+                alert('播放失敗: ' + e.message);
+            }
+        }
+
+        function stopPlayback() {
+            if (audioElement) {
+                audioElement.pause();
+                audioElement.src = '';
+            }
+            currentlyPlaying = null;
+            renderReviewList();
+        }
+
+        // ============================================
+        // 選擇和標記
+        // ============================================
         function selectSegment(fileName, index) {
             if (selectedFile === fileName && selectedIndex === index) {
                 selectedFile = null;
@@ -1177,29 +1345,23 @@
             renderReviewList();
         }
 
-        function playSegment(fileName, index) {
-            const audioData = detector.audioData[fileName];
-            const seg = detector.segments[fileName][index];
-            if (!audioData || !seg) return;
-            
-            const start = Math.floor(seg.startTime * detector.sampleRate);
-            const end = Math.floor(seg.endTime * detector.sampleRate);
-            const segment = audioData.slice(start, end);
-            
-            const blob = new Blob([segment.buffer], { type: 'audio/wav' });
-            const url = URL.createObjectURL(blob);
-            document.getElementById('audioPlayer').src = url;
-            document.getElementById('audioInfo').textContent = `${fileName} - ${seg.startTime.toFixed(2)}s ~ ${seg.endTime.toFixed(2)}s (${detector.getLabel(seg)})`;
-            document.getElementById('audioModal').classList.add('active');
-            document.getElementById('audioPlayer').play();
-        }
-
         function markSelected(label) {
             if (selectedFile === null || selectedIndex === null) {
                 alert('請先點擊選擇一個片段！');
                 return;
             }
             detector.markSegment(selectedFile, selectedIndex, label);
+            renderReviewList();
+            renderAnalysisResults();
+        }
+
+        function markCurrentPlaying(label) {
+            if (!currentlyPlaying) {
+                alert('請先播放一個片段！');
+                return;
+            }
+            detector.markSegment(currentlyPlaying.fileName, currentlyPlaying.index, label);
+            stopPlayback();
             renderReviewList();
             renderAnalysisResults();
         }
@@ -1230,7 +1392,8 @@
             let csv = '檔案名稱,開始時間,結束時間,自動標籤,手動標籤,有效標籤,信心度\n';
             for (const name of fileNames) {
                 for (const seg of detector.segments[name]) {
-                    csv += `"${name}",${seg.startTime.toFixed(3)},${seg.endTime.toFixed(3)},${seg.label},${seg.manualLabel || ''},${detector.getLabel(seg)},${seg.confidence.toFixed(4)}\n`;
+                    csv +=
+                        `"${name}",${seg.startTime.toFixed(3)},${seg.endTime.toFixed(3)},${seg.label},${seg.manualLabel || ''},${detector.getLabel(seg)},${seg.confidence.toFixed(4)}\n`;
                 }
             }
 
@@ -1268,9 +1431,22 @@
             if (e.target === this) closeModal('guideModal');
         });
 
+        // 鍵盤快捷鍵 - ESC 停止播放
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                stopPlayback();
+                closeModal('audioModal');
+            }
+        });
+
         console.log('🎯 呼吸音檢測器已載入');
-        console.log('📌 使用步驟: 上傳音檔 → 開始檢測 → 標記複查');
-        console.log('💡 雙擊片段可播放驗證');
+        console.log('📌 使用步驟:');
+        console.log('  1. 上傳音檔 → 開始檢測');
+        console.log('  2. 切換到「標記複查」');
+        console.log('  3. 點擊 ▶ 播放片段驗證');
+        console.log('  4. 雙擊片段也可播放');
+        console.log('  5. 播放時片段會高亮');
+        console.log('  6. 標記錯誤的結果糾正');
     </script>
 </body>
 </html>
