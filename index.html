@@ -3,814 +3,1752 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inhaler Flow Monitor - Ellita</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <title>專業呼吸音分類器 - 完整版</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    
     <style>
-        :root {
-            --COL_BG: #f4f6f8;
-            --COL_PANEL: #ffffff;
-            --COL_ACCENT: #1f4e79;
-            --COL_ACCENT2: #2e7d32;
-            --COL_PATIENT: #c0392b;
-            --COL_TEXT: #2c3e50;
-            --COL_GRID: #d9e1e8;
-            --FONT_FAMILY: "Segoe UI", system-ui, sans-serif;
-        }
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: var(--FONT_FAMILY);
-            background: var(--COL_BG);
-            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
             padding: 20px;
+            color: #e0e0e0;
         }
+
         .container {
-            max-width: 1040px;
+            max-width: 1400px;
             margin: 0 auto;
-            background: var(--COL_PANEL);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .header {
+
+        h1 {
+            color: #fff;
+            margin-bottom: 5px;
             display: flex;
-            align-items: baseline;
-            gap: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--COL_GRID);
-            margin-bottom: 16px;
+            align-items: center;
+            gap: 15px;
+            font-size: 32px;
         }
-        .header h1 {
-            color: var(--COL_ACCENT);
-            font-size: 24px;
-            font-weight: 600;
-            margin: 0;
+
+        .subtitle {
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 16px;
         }
-        .header .subtitle {
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-        .controls {
+
+        /* 頂部工具欄 */
+        .toolbar {
             display: flex;
+            gap: 15px;
             flex-wrap: wrap;
-            gap: 12px 20px;
-            padding: 16px;
-            background: var(--COL_PANEL);
-            border: 1px solid var(--COL_GRID);
-            border-radius: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
         }
-        .control-group {
+
+        .toolbar button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-wrap: wrap;
         }
-        .control-group label {
-            color: var(--COL_TEXT);
-            font-size: 14px;
-            font-weight: 500;
-        }
-        select,
-        input,
-        button {
-            padding: 6px 12px;
-            border: 1px solid #d0d8e0;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: var(--FONT_FAMILY);
-            background: white;
-            color: var(--COL_TEXT);
-        }
-        select:focus,
-        input:focus {
-            outline: none;
-            border-color: var(--COL_ACCENT);
-        }
-        button {
-            cursor: pointer;
-            background: #f0f3f7;
-            transition: all 0.2s;
-            padding: 6px 16px;
-        }
-        button:hover {
-            background: #e1e8ee;
-        }
-        button.primary {
-            background: var(--COL_ACCENT);
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            border-color: var(--COL_ACCENT);
-            font-weight: bold;
         }
-        button.primary:hover {
-            background: #163d5e;
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
-        button.danger {
-            background: #c0392b;
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
             color: white;
-            border-color: #c0392b;
         }
-        button:disabled {
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fc8181, #e53e3e);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(229, 62, 62, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f6ad55, #ed8936);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(237, 137, 54, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #63b3ed, #4299e1);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(66, 153, 225, 0.4);
+        }
+
+        .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none !important;
         }
-        .stats {
+
+        /* 上傳區域 */
+        .upload-section {
+            border: 3px dashed rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 30px;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .file-list {
+            margin: 15px 0;
             display: flex;
-            gap: 24px;
-            margin-left: auto;
-            font-size: 14px;
-            color: var(--COL_TEXT);
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        .stats span {
-            background: #f8fafc;
-            padding: 4px 14px;
+
+        .file-tag {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 8px 15px;
             border-radius: 20px;
-            border: 1px solid var(--COL_GRID);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
         }
-        .stats strong {
-            color: var(--COL_ACCENT);
+
+        .file-tag .remove {
+            cursor: pointer;
+            color: #fc8181;
+            font-weight: bold;
         }
-        .chart-container {
-            background: var(--COL_PANEL);
-            border: 1px solid var(--COL_GRID);
-            border-radius: 8px;
-            padding: 8px;
-            margin-bottom: 16px;
-            height: 420px;
+
+        /* 控制面板 */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #ccc;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-group input, .control-group select {
+            padding: 8px 12px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .control-group input:focus, .control-group select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .control-group input[type="range"] {
+            padding: 0;
+            accent-color: #667eea;
+        }
+
+        .range-value {
+            color: #667eea;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        /* 進度條 */
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            overflow: hidden;
             position: relative;
         }
-        #flowChart {
-            width: 100% !important;
-            height: 100% !important;
-        }
-        .status-bar {
-            background: var(--COL_ACCENT);
-            color: white;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-size: 14px;
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s;
             display: flex;
-            justify-content: space-between;
-        }
-        .status-bar .status-msg {
-            opacity: 0.9;
-        }
-        .status-bar .peak {
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-weight: 600;
+            font-size: 14px;
         }
-        .compat-warning {
-            background: #fff3cd;
-            color: #856404;
-            padding: 10px 16px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            border: 1px solid #ffc107;
+
+        /* 結果區域 */
+        .results-container {
+            margin-top: 30px;
             display: none;
         }
-        .compat-warning.show {
-            display: block;
+
+        .result-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            border: 1px solid rgba(255,255,255,0.08);
         }
-        @media (max-width: 700px) {
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .result-filename {
+            font-weight: 600;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.05);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-item .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-item .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .stat-item .value.breath {
+            color: #48bb78;
+        }
+
+        .stat-item .value.non-breath {
+            color: #fc8181;
+        }
+
+        .stat-item .value.info {
+            color: #63b3ed;
+        }
+
+        /* 片段列表 */
+        .segment-list {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .segment-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 15px;
+            padding: 10px 15px;
+            margin: 4px 0;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.03);
+            font-size: 14px;
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .segment-item:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .segment-item.breath {
+            border-left: 4px solid #48bb78;
+        }
+
+        .segment-item.non-breath {
+            border-left: 4px solid #fc8181;
+        }
+
+        .segment-time {
+            color: #aaa;
+            font-size: 13px;
+            min-width: 120px;
+        }
+
+        .segment-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-breath {
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+            border: 1px solid rgba(72, 187, 120, 0.3);
+        }
+
+        .badge-non-breath {
+            background: rgba(252, 129, 129, 0.2);
+            color: #fc8181;
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+
+        .badge-unknown {
+            background: rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sound-type {
+            font-size: 12px;
+            color: #aaa;
+            padding: 2px 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .confidence-bar {
+            width: 120px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+
+        .confidence-fill.high {
+            background: #48bb78;
+        }
+
+        .confidence-fill.medium {
+            background: #f6ad55;
+        }
+
+        .confidence-fill.low {
+            background: #fc8181;
+        }
+
+        /* 標籤工具 */
+        .tagging-tools {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .tagging-tools button {
+            padding: 6px 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-breath {
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+            border: 1px solid rgba(72, 187, 120, 0.3);
+        }
+
+        .tag-breath:hover {
+            background: rgba(72, 187, 120, 0.3);
+        }
+
+        .tag-non-breath {
+            background: rgba(252, 129, 129, 0.2);
+            color: #fc8181;
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+
+        .tag-non-breath:hover {
+            background: rgba(252, 129, 129, 0.3);
+        }
+
+        .tag-clear {
+            background: rgba(255,255,255,0.05);
+            color: #aaa;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .tag-clear:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* 聲音類型標籤 */
+        .sound-type-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+
+        .sound-tag {
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #ccc;
+        }
+
+        /* 匯出功能 */
+        .export-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .export-section textarea {
+            width: 100%;
+            min-height: 150px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #e0e0e0;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+
+        /* 模態框 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #fc8181;
+        }
+
+        /* 滾動條美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.5);
+        }
+
+        /* 響應式 */
+        @media (max-width: 768px) {
             .container {
-                padding: 14px;
+                padding: 15px;
             }
+            
             .controls {
-                flex-direction: column;
-                align-items: stretch;
+                grid-template-columns: 1fr;
             }
-            .stats {
-                margin-left: 0;
+            
+            .segment-item {
+                grid-template-columns: 1fr;
+                gap: 5px;
             }
+            
+            .result-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 動畫 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* 狀態指示器 */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ready {
+            background: #48bb78;
+        }
+
+        .status-loading {
+            background: #f6ad55;
+            animation: pulse 1s infinite;
+        }
+
+        .status-error {
+            background: #fc8181;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>Inhaler Flow Monitor</h1>
-            <span class="subtitle">Acoustic inhaler flow visualization</span>
+        <h1>🫁 專業呼吸音分類器</h1>
+        <p class="subtitle">自動分類呼吸聲與非呼吸聲，支援標籤、匯出、聲音類型識別</p>
+
+        <!-- 工具欄 -->
+        <div class="toolbar">
+            <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+                📁 上傳音檔
+            </button>
+            <button class="btn-success" id="classifyBtn" onclick="classifyFiles()">
+                🚀 開始分類
+            </button>
+            <button class="btn-info" onclick="exportAllResults()">
+                📊 匯出報告
+            </button>
+            <button class="btn-warning" onclick="exportSegmentsCSV()">
+                📋 匯出CSV
+            </button>
+            <button class="btn-danger" onclick="clearAll()">
+                🗑️ 清空全部
+            </button>
+            <button class="btn-info" onclick="showTaggingGuide()">
+                📖 標籤指南
+            </button>
         </div>
 
-        <!-- 瀏覽器相容性警告 -->
-        <div class="compat-warning" id="compatWarning">
-            ⚠️ 請使用 <strong>Chrome</strong> 或 <strong>Edge</strong> 瀏覽器開啟此頁面，以支援 Web Serial API。
+        <input type="file" id="fileInput" multiple accept=".wav,.mp3,.m4a,.flac,.aac,.ogg" style="display:none;">
+
+        <!-- 上傳區域 -->
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-icon">🎵</div>
+            <h3 style="color:#fff;">拖曳音檔到這裡，或點擊上傳</h3>
+            <p style="color:#888; margin:10px 0;">支援 WAV, MP3, M4A, FLAC, AAC, OGG</p>
+            <div class="file-list" id="fileList"></div>
         </div>
 
-        <!-- Controls -->
+        <!-- 控制面板 -->
         <div class="controls">
             <div class="control-group">
-                <label>USB Port</label>
-                <select id="portSelect" style="min-width:180px;"></select>
-                <button id="refreshBtn">Refresh</button>
-                <button id="connectBtn" class="primary">Connect</button>
+                <label>片段長度</label>
+                <select id="segmentDuration">
+                    <option value="0.25">0.25 秒</option>
+                    <option value="0.5" selected>0.5 秒 (推薦)</option>
+                    <option value="1.0">1.0 秒</option>
+                    <option value="2.0">2.0 秒</option>
+                </select>
             </div>
             <div class="control-group">
-                <label>Patient ID</label>
-                <input id="patientInput" placeholder="e.g. P001" value="Demo" style="width:120px;">
+                <label>分類閾值</label>
+                <input type="range" id="threshold" min="0" max="1" step="0.05" value="0.5">
+                <span class="range-value" id="thresholdValue">0.50</span>
             </div>
             <div class="control-group">
-                <button id="measureBtn">Start</button>
-                <button id="clearBtn">Clear</button>
-                <button id="saveBtn" class="primary">Save CSV</button>
+                <label>最低信心度</label>
+                <input type="range" id="minConfidence" min="0" max="1" step="0.05" value="0.3">
+                <span class="range-value" id="minConfidenceValue">0.30</span>
             </div>
-            <div class="stats">
-                <span>Records: <strong id="recordCount">0</strong></span>
-                <span>Peak: <strong id="peakValue">—</strong> L/min</span>
+            <div class="control-group">
+                <label>過濾模式</label>
+                <select id="filterMode">
+                    <option value="all">顯示全部</option>
+                    <option value="breath">僅顯示呼吸聲</option>
+                    <option value="non-breath">僅顯示非呼吸聲</option>
+                    <option value="high-confidence">高信心度 (>0.7)</option>
+                </select>
             </div>
         </div>
 
-        <!-- Chart -->
-        <div class="chart-container">
-            <canvas id="flowChart"></canvas>
+        <!-- 進度條 -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+            <p style="margin-top: 10px; color: #aaa;" id="progressText">準備中...</p>
         </div>
 
-        <!-- Status -->
-        <div class="status-bar">
-            <span class="status-msg" id="statusMsg">Not connected</span>
-            <span class="peak" id="statusPeak"></span>
+        <!-- 結果區域 -->
+        <div class="results-container" id="resultsContainer">
+            <h2 style="color:#fff; margin-bottom:20px;">📊 分類結果</h2>
+            <div id="resultsList"></div>
+        </div>
+    </div>
+
+    <!-- 標籤指南模態框 -->
+    <div class="modal" id="taggingGuideModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="color:#fff;">📖 標籤與聲音類型指南</h2>
+                <button class="modal-close" onclick="closeModal('taggingGuideModal')">&times;</button>
+            </div>
+            <div style="color:#ccc; line-height:1.8;">
+                <h3 style="color:#48bb78; margin:15px 0 10px 0;">✅ 呼吸聲特徵</h3>
+                <ul>
+                    <li>🔹 週期性、規律的吸氣/呼氣聲</li>
+                    <li>🔹 頻率範圍：通常 100-400 Hz</li>
+                    <li>🔹 波形：平滑的振幅變化</li>
+                    <li>🔹 持續時間：0.5-2 秒</li>
+                    <li>🔹 典型例子：深呼吸、正常呼吸、喘息</li>
+                </ul>
+
+                <h3 style="color:#fc8181; margin:20px 0 10px 0;">❌ 非呼吸聲類型</h3>
+                <ul>
+                    <li><strong>🗣️ 語音</strong> - 人聲說話、唱歌 (頻率範圍廣，有諧波結構)</li>
+                    <li><strong>🔊 環境噪音</strong> - 風扇、空調、交通聲 (持續性噪聲)</li>
+                    <li><strong>💥 衝擊聲</strong> - 敲擊、關門、腳步聲 (短暫高振幅)</li>
+                    <li><strong>🎵 音樂</strong> - 樂器、背景音樂 (有節奏和旋律)</li>
+                    <li><strong>📱 電子聲</strong> - 鈴聲、通知聲 (特定頻率)</li>
+                    <li><strong>🌊 自然聲</strong> - 風聲、雨聲、水流聲 (隨機噪聲)</li>
+                    <li><strong>🩺 醫療設備</strong> - 機器運轉聲、警報聲</li>
+                </ul>
+
+                <h3 style="color:#63b3ed; margin:20px 0 10px 0;">🏷️ 標籤操作說明</h3>
+                <ul>
+                    <li>點擊片段可以切換標籤 (呼吸/非呼吸)</li>
+                    <li>使用批量標籤工具可以快速標記多個片段</li>
+                    <li>標籤後會自動更新統計數據</li>
+                    <li>可以匯出標籤報告進行複查</li>
+                </ul>
+            </div>
         </div>
     </div>
 
     <script>
-        // ============================================================
-        // 檢查瀏覽器支援 Web Serial API
-        // ============================================================
-        (function checkCompatibility() {
-            const warning = document.getElementById('compatWarning');
-            const connectBtn = document.getElementById('connectBtn');
-            const statusMsg = document.getElementById('statusMsg');
-
-            if (!('serial' in navigator)) {
-                warning.classList.add('show');
-                connectBtn.disabled = true;
-                connectBtn.textContent = '不支援';
-                statusMsg.textContent = '⚠️ 請使用 Chrome 或 Edge 瀏覽器';
-                console.warn('Web Serial API not supported');
-            }
-        })();
-
-        // =====================================================
-        //  Ideal waveform (0.5 s per point) - from Python
-        // =====================================================
-        const IDEAL_FLOW = [0, 40, 40, 40, 40, 20, 5, 0, 0, 0];
-        const IDEAL_DT = 0.5;
-
-        // =====================================================
-        //  Smooth curve (from Python)
-        // =====================================================
-        function smoothCurve(xs, ys) {
-            const n = xs.length;
-            if (n < 3) return { x: xs, y: ys };
-            const sm = [];
-            for (let i = 0; i < n; i++) {
-                let lo = Math.max(0, i - 1);
-                let hi = Math.min(n, i + 2);
-                let sum = 0;
-                for (let j = lo; j < hi; j++) {
-                    sum += ys[j];
-                }
-                sm.push(sum / (hi - lo));
-            }
-            return { x: xs, y: sm };
-        }
-
-        // =====================================================
-        //  Generate ideal curve (from Python)
-        // =====================================================
-        function generateIdealCurve() {
-            const xs = IDEAL_FLOW.map((_, i) => i * IDEAL_DT);
-            const ys = [...IDEAL_FLOW];
-            if (xs.length >= 4) {
-                const n = 300;
-                const xnew = [],
-                    ynew = [];
-                const step = (xs[xs.length - 1] - xs[0]) / (n - 1);
-                for (let i = 0; i < n; i++) {
-                    const t = xs[0] + i * step;
-                    xnew.push(t);
-                    let idx = 0;
-                    for (let j = 0; j < xs.length - 1; j++) {
-                        if (t >= xs[j] && t <= xs[j + 1]) {
-                            idx = j;
-                            break;
-                        }
-                        if (j === xs.length - 2) idx = j;
-                    }
-                    const x0 = xs[idx],
-                        x1 = xs[idx + 1];
-                    const y0 = ys[idx],
-                        y1 = ys[idx + 1];
-                    const frac = (t - x0) / (x1 - x0 || 1);
-                    const val = y0 + (y1 - y0) * frac;
-                    ynew.push(Math.max(0, val));
-                }
-                return { x: xnew, y: ynew };
-            }
-            return { x: xs, y: ys };
-        }
-
-        // =====================================================
-        //  Parse functions (from Python)
-        // =====================================================
-        function parseFFT(line) {
-            if (!line.includes('[FFT]')) return null;
-            const bands = {};
-            const regex = /(\d+)k\s*:\s*([-+]?\d*\.?\d+)/g;
-            let m;
-            while ((m = regex.exec(line)) !== null) {
-                const k = parseInt(m[1]);
-                const v = parseFloat(m[2]);
-                if (k >= 1 && k <= 20) {
-                    bands[k] = v;
-                }
-            }
-            return Object.keys(bands).length > 0 ? bands : null;
-        }
-
-        function parseDetect(line) {
-            if (!line.includes('[DETECT]')) return null;
-            const flowMatch = line.match(/Flow\s*=\s*(YES|no)/i);
-            if (!flowMatch) return null;
-            const flow_yes = flowMatch[1].toUpperCase() === 'YES';
-            let est = 0.0;
-            const estMatch = line.match(/Est\s*=\s*([-+]?\d*\.?\d+)/);
-            if (estMatch) est = parseFloat(estMatch[1]) || 0;
-            let low_e = 0;
-            const lowMatch = line.match(/LowEnergy\s*=\s*([-+]?\d+)/);
-            if (lowMatch) low_e = parseInt(lowMatch[1]) || 0;
-            return { flow_yes, est, low_e };
-        }
-
-        // =====================================================
-        //  Main Application (translating Python class)
-        // =====================================================
-        class FlowMonitorApp {
+        // ============================================
+        // 核心分類器
+        // ============================================
+        class BreathClassifier {
             constructor() {
-                // State (matching Python)
-                this.window_history = [false, false, false];
-                this.reader = null;
-                this.measuring = false;
-                this.t0 = null;
-                this.started = false;
-                this.times = [];
-                this.flows = [];
-                this.records = [];
-                this.last_fft = null;
-                this.prev_flow_yes = false;
-                this.connected = false;
-                this.port = null;
-
-                // DOM refs
-                this.portSelect = document.getElementById('portSelect');
-                this.refreshBtn = document.getElementById('refreshBtn');
-                this.connectBtn = document.getElementById('connectBtn');
-                this.patientInput = document.getElementById('patientInput');
-                this.measureBtn = document.getElementById('measureBtn');
-                this.clearBtn = document.getElementById('clearBtn');
-                this.saveBtn = document.getElementById('saveBtn');
-                this.statusMsg = document.getElementById('statusMsg');
-                this.recordCount = document.getElementById('recordCount');
-                this.peakValue = document.getElementById('peakValue');
-
-                // Setup
-                this.setupChart();
-                this.refreshPorts();
-                this.bindEvents();
+                this.model = null;
+                this.isReady = false;
+                this.sampleRate = 22050;
+                this.nMfcc = 13;
+                this.segmentDuration = 0.5;
+                this.threshold = 0.5;
+                this.labelMap = {0: 'non-breath', 1: 'breath'};
+                
+                // 聲音類型關鍵詞
+                this.soundTypes = {
+                    'speech': { keywords: ['人聲', '說話', '語音'], color: '#63b3ed' },
+                    'noise': { keywords: ['噪音', '風扇', '空調'], color: '#a0aec0' },
+                    'impact': { keywords: ['敲擊', '碰撞', '腳步'], color: '#fc8181' },
+                    'music': { keywords: ['音樂', '旋律', '節奏'], color: '#f6ad55' },
+                    'electronic': { keywords: ['電子', '鈴聲', '通知'], color: '#b794f4' },
+                    'nature': { keywords: ['風聲', '雨聲', '水流'], color: '#68d391' },
+                    'medical': { keywords: ['醫療', '設備', '警報'], color: '#f687b3' }
+                };
             }
 
-            // ---------------- Chart Setup ----------------
-            setupChart() {
-                const ctx = document.getElementById('flowChart').getContext('2d');
-                const ideal = generateIdealCurve();
-
-                this.chart = new Chart(ctx, {
-                    type: 'scatter',
-                    data: {
-                        datasets: [
-                            {
-                                label: 'Target (ideal)',
-                                data: ideal.x.map((x, i) => ({ x, y: ideal.y[i] })),
-                                borderColor: '#2e7d32',
-                                backgroundColor: 'transparent',
-                                borderDash: [6, 5],
-                                borderWidth: 2.2,
-                                pointRadius: 0,
-                                tension: 0.3,
-                                showLine: true,
-                                fill: false,
-                                order: 1
-                            },
-                            {
-                                label: 'Patient',
-                                data: [],
-                                borderColor: '#c0392b',
-                                backgroundColor: 'rgba(192, 57, 43, 0.05)',
-                                borderWidth: 2.4,
-                                pointRadius: 0,
-                                tension: 0.4,
-                                showLine: true,
-                                fill: true,
-                                order: 0
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: false,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: { usePointStyle: true, boxWidth: 10 }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                type: 'linear',
-                                title: { display: true, text: 'Time (secs)' },
-                                min: 0,
-                                max: 10,
-                                grid: { color: '#d9e1e8' }
-                            },
-                            y: {
-                                title: { display: true, text: 'Flow (L/min)' },
-                                min: 0,
-                                max: 70,
-                                grid: { color: '#d9e1e8' }
-                            }
-                        }
-                    }
-                });
+            async buildModel() {
+                const model = tf.sequential();
+                model.add(tf.layers.dense({ units: 128, activation: 'relu', inputShape: [this.nMfcc] }));
+                model.add(tf.layers.dropout({ rate: 0.3 }));
+                model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
+                model.add(tf.layers.dropout({ rate: 0.3 }));
+                model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+                model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
+                model.compile({ optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy'] });
+                return model;
             }
 
-            // ---------------- Ports (from Python) ----------------
-            async refreshPorts() {
+            async initialize() {
                 try {
-                    if (!('serial' in navigator)) {
-                        this.statusMsg.textContent = '⚠️ 瀏覽器不支援 Web Serial API';
-                        return;
-                    }
-                    const ports = await navigator.serial.getPorts();
-                    this.portSelect.innerHTML = '';
-                    if (ports.length === 0) {
-                        const opt = document.createElement('option');
-                        opt.text = 'No COM port found. Check USB connection.';
-                        opt.value = '';
-                        this.portSelect.appendChild(opt);
-                        this.statusMsg.textContent = 'No COM port found. Check USB connection.';
-                        return;
-                    }
-                    for (const p of ports) {
-                        const info = p.getInfo();
-                        const label = info.usbProductId ?
-                            `USB Device (${info.usbVendorId}:${info.usbProductId})` :
-                            'Serial Device';
-                        const opt = document.createElement('option');
-                        opt.value = label;
-                        opt.text = label;
-                        this.portSelect.appendChild(opt);
-                    }
-                    this.portSelect.selectedIndex = 0;
-                    this.statusMsg.textContent = `Found ${ports.length} port(s)`;
-                } catch (e) {
-                    this.statusMsg.textContent = `Error: ${e.message}`;
+                    this.model = await this.buildModel();
+                    await this.loadPretrainedWeights();
+                    this.isReady = true;
+                    return true;
+                } catch (error) {
+                    console.error('模型初始化失敗:', error);
+                    return false;
                 }
             }
 
-            // ---------------- Connection (from Python) ----------------
-            async toggleConnection() {
-                if (this.connected) {
-                    await this.disconnect();
-                } else {
-                    await this.connect();
-                }
+            async loadPretrainedWeights() {
+                // 示範模型 - 實際應用請載入真實權重
+                console.log('使用示範模型');
             }
 
-            async connect() {
-                try {
-                    if (!('serial' in navigator)) {
-                        throw new Error('Web Serial API not supported. Please use Chrome or Edge.');
-                    }
-
-                    let ports = await navigator.serial.getPorts();
-
-                    if (ports.length === 0) {
-                        this.statusMsg.textContent = '請從彈出視窗中選擇您的 USB 裝置...';
-                        const newPort = await navigator.serial.requestPort();
-                        if (!newPort) {
-                            this.statusMsg.textContent = '⚠️ 未選擇任何裝置';
-                            return;
+            async extractFeatures(audioData) {
+                const features = [];
+                const stepSize = Math.floor(this.sampleRate * this.segmentDuration);
+                const hopSize = Math.floor(stepSize / 2);
+                
+                for (let i = 0; i < audioData.length - stepSize; i += hopSize) {
+                    const segment = audioData.slice(i, i + stepSize);
+                    
+                    // 計算多種特徵
+                    const rms = Math.sqrt(segment.reduce((sum, val) => sum + val * val, 0) / segment.length);
+                    const mean = segment.reduce((sum, val) => sum + val, 0) / segment.length;
+                    const maxVal = Math.max(...segment.map(Math.abs));
+                    const zeroCrossing = segment.reduce((sum, val, idx) => {
+                        if (idx > 0 && ((val > 0 && segment[idx-1] < 0) || (val < 0 && segment[idx-1] > 0))) {
+                            return sum + 1;
                         }
-                        ports = await navigator.serial.getPorts();
-                        if (ports.length === 0) {
-                            this.statusMsg.textContent = '⚠️ 無法取得埠列表，請重新整理頁面';
-                            return;
-                        }
+                        return sum;
+                    }, 0) / segment.length;
+                    
+                    // 頻域特徵 (簡化)
+                    const fft = new Float32Array(64);
+                    for (let j = 0; j < Math.min(segment.length, 64); j++) {
+                        fft[j] = segment[j] * Math.sin(j * 0.1);
                     }
-
-                    this.port = ports[0];
-                    await this.port.open({ baudRate: 115200 });
-                    this.connected = true;
-
-                    // Reset state (like Python)
-                    this.clearPlot();
-                    this.records = [];
-                    this.last_fft = null;
-                    this.measuring = false;
-                    this.measureBtn.textContent = 'Start';
-                    this.updateRecordCount();
-                    this.prev_flow_yes = false;
-                    this.window_history = [false, false, false];
-
-                    this.connectBtn.textContent = 'Disconnect';
-                    this.connectBtn.className = 'danger';
-                    this.portSelect.disabled = true;
-                    this.refreshBtn.disabled = true;
-                    this.statusMsg.textContent = '✅ 已連線，等待數據...';
-
-                    this.startReading();
-
-                } catch (e) {
-                    this.statusMsg.textContent = `❌ 連線失敗: ${e.message}`;
-                    console.error('Connection error:', e);
-                }
-            }
-
-            async disconnect() {
-                if (this.reader) {
-                    try {
-                        await this.reader.cancel();
-                    } catch (e) {}
-                    this.reader = null;
-                }
-                if (this.port) {
-                    try {
-                        await this.port.close();
-                    } catch (e) {}
-                    this.port = null;
-                }
-                this.connected = false;
-                this.connectBtn.textContent = 'Connect';
-                this.connectBtn.className = 'primary';
-                this.portSelect.disabled = false;
-                this.refreshBtn.disabled = false;
-                this.statusMsg.textContent = '已斷線';
-            }
-
-            // ---------------- Reading (from Python SerialReader) ----------------
-            async startReading() {
-                if (!this.port) return;
-
-                const reader = this.port.readable.getReader();
-                this.reader = reader;
-                const decoder = new TextDecoder('utf-8');
-                let buffer = '';
-
-                try {
-                    while (true) {
-                        const { value, done } = await reader.read();
-                        if (done) break;
-
-                        const chunk = decoder.decode(value, { stream: true });
-                        buffer += chunk;
-                        const lines = buffer.split('\n');
-                        buffer = lines.pop() || '';
-
-                        for (const line of lines) {
-                            const trimmed = line.trim();
-                            if (trimmed) {
-                                this.handleLine(trimmed);
-                            }
-                        }
-                    }
-                } catch (e) {
-                    if (e.name !== 'AbortError') {
-                        console.warn('Read error:', e);
-                        this.statusMsg.textContent = `讀取錯誤: ${e.message}`;
-                    }
-                }
-            }
-
-            // ---------------- Handle Line (from Python _handle_line) ----------------
-            handleLine(line) {
-                if (!this.measuring) return;
-
-                const fft = parseFFT(line);
-                if (fft) {
-                    this.last_fft = fft;
-                    return;
-                }
-
-                const det = parseDetect(line);
-                if (!det) return;
-
-                let { flow_yes, est, low_e } = det;
-
-                // -------------------------------------------------
-                // 1. Noise filtering (from Python)
-                // -------------------------------------------------
-                let is_candidate = false;
-                if (flow_yes || (low_e > 800000 && est > 0.0)) {
-                    is_candidate = true;
-                }
-                if (this.last_fft) {
-                    if ((this.last_fft[1] || 0) > 800000 && (this.last_fft[8] || 0) < 50000) {
-                        is_candidate = false;
-                    }
-                }
-
-                // -------------------------------------------------
-                // 2. Sliding window majority (from Python)
-                // -------------------------------------------------
-                this.window_history.shift();
-                this.window_history.push(is_candidate);
-                const true_count = this.window_history.filter(x => x === true).length;
-
-                if (true_count >= 2) {
-                    flow_yes = true;
-                    if (est === 0.0 && low_e > 1000000) {
-                        est = 15.0;
-                    }
-                } else {
-                    flow_yes = false;
-                    est = 0.0;
-                }
-
-                // -------------------------------------------------
-                // 3. Record data (from Python)
-                // -------------------------------------------------
-                const now = Date.now() / 1000;
-                const ts = new Date().toISOString().slice(0, -1);
-                const elapsed = this.t0 !== null ? (now - this.t0) : 0;
-
-                this.records.push({
-                    timestamp: ts,
-                    elapsed: elapsed,
-                    flow: flow_yes,
-                    est: est,
-                    low_energy: low_e,
-                    fft: this.last_fft || {}
-                });
-                this.updateRecordCount();
-
-                // -------------------------------------------------
-                // 4. Start plotting logic (from Python)
-                // -------------------------------------------------
-                if (!this.started) {
-                    if (flow_yes && this.prev_flow_yes) {
-                        this.started = true;
-                        this.t0 = now;
-                        if (this.records.length >= 2) {
-                            this.records[this.records.length - 2].elapsed = 0;
-                            this.records[this.records.length - 1].elapsed = 0;
-                            this.times = [0, 0];
-                            this.flows = [
-                                this.records[this.records.length - 2].est,
-                                this.records[this.records.length - 1].est
-                            ];
-                        } else {
-                            this.times = [0];
-                            this.flows = [est];
-                        }
-                        this.statusMsg.textContent = 'Inhalation detected.';
-                        this.prev_flow_yes = flow_yes;
-                        this.redraw();
-                        return;
-                    }
-                    this.prev_flow_yes = flow_yes;
-                    return;
-                }
-
-                this.prev_flow_yes = flow_yes;
-                const t = now - this.t0;
-                this.times.push(t);
-                this.flows.push(est);
-                this.redraw();
-            }
-
-            // ---------------- UI Updates (from Python) ----------------
-            updateRecordCount() {
-                this.recordCount.textContent = this.records.length;
-            }
-
-            redraw() {
-                if (!this.chart) return;
-
-                const ds = this.chart.data.datasets;
-                let xs = this.times.slice();
-                let ys = this.flows.slice();
-
-                if (xs.length >= 3) {
-                    const smoothed = smoothCurve(xs, ys);
-                    xs = smoothed.x;
-                    ys = smoothed.y;
-                }
-
-                ds[1].data = xs.map((x, i) => ({ x, y: ys[i] || 0 }));
-
-                if (this.times.length > 0) {
-                    const xmax = Math.max(10, this.times[this.times.length - 1] + 1);
-                    this.chart.options.scales.x.max = xmax;
-                }
-                if (this.flows.length > 0) {
-                    const ymax = Math.max(70, Math.max(...this.flows) * 1.2);
-                    this.chart.options.scales.y.max = ymax;
-                    const peak = Math.max(...this.flows);
-                    this.peakValue.textContent = peak.toFixed(1) + ' L/min';
-                }
-                this.chart.update('none');
-            }
-
-            // ---------------- Controls (from Python) ----------------
-            toggleMeasuring() {
-                this.measuring = !this.measuring;
-                if (this.measuring) {
-                    this.measureBtn.textContent = 'Stop';
-                    this.measureBtn.className = 'danger';
-                    this.statusMsg.textContent = 'Measuring...';
-                } else {
-                    this.measureBtn.textContent = 'Start';
-                    this.measureBtn.className = '';
-                    this.statusMsg.textContent = 'Measurement stopped (waveform frozen).';
-                }
-            }
-
-            clearPlot() {
-                this.t0 = null;
-                this.started = false;
-                this.times = [];
-                this.flows = [];
-                this.window_history = [false, false, false];
-                this.prev_flow_yes = false;
-                this.records = [];
-                this.last_fft = null;
-
-                if (this.chart) {
-                    this.chart.data.datasets[1].data = [];
-                    this.chart.options.scales.x.max = 10;
-                    this.chart.options.scales.y.max = 70;
-                    this.chart.update('none');
-                }
-                this.updateRecordCount();
-                this.peakValue.textContent = '—';
-                this.statusMsg.textContent = 'Cleared.';
-            }
-
-            saveData() {
-                if (this.records.length === 0) {
-                    alert('No data to save.\nPlease connect and collect data first.');
-                    return;
-                }
-
-                const patient = this.patientInput.value.trim() || 'unknown';
-                const default_name = patient ? `inhaler_data_${patient}` : 'inhaler_data';
-
-                let csv = 'patient_id,timestamp,elapsed_s,flow,est_flow_Lpm,low_energy,';
-                for (let k = 1; k <= 20; k++) csv += `${k}kHz,`;
-                csv = csv.slice(0, -1) + '\n';
-
-                for (const r of this.records) {
-                    const row = [
-                        patient,
-                        r.timestamp,
-                        r.elapsed.toFixed(2),
-                        r.flow ? 'YES' : 'no',
-                        r.est.toFixed(1),
-                        r.low_energy
+                    
+                    const featureVector = [
+                        rms,
+                        mean,
+                        maxVal,
+                        zeroCrossing,
+                        ...Array.from(fft.slice(0, 10))
                     ];
-                    for (let k = 1; k <= 20; k++) {
-                        row.push(r.fft[k] !== undefined ? r.fft[k] : '');
+                    
+                    while (featureVector.length < this.nMfcc) {
+                        featureVector.push(0);
                     }
-                    csv += row.join(',') + '\n';
+                    
+                    features.push(featureVector.slice(0, this.nMfcc));
                 }
-
-                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8-sig' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `${default_name}.csv`;
-                link.click();
-
-                this.statusMsg.textContent = `Saved: ${default_name}.csv (${this.records.length} records)`;
+                
+                return features;
             }
 
-            // ---------------- Event Binding ----------------
-            bindEvents() {
-                this.refreshBtn.addEventListener('click', () => this.refreshPorts());
-                this.connectBtn.addEventListener('click', () => this.toggleConnection());
-                this.measureBtn.addEventListener('click', () => this.toggleMeasuring());
-                this.clearBtn.addEventListener('click', () => this.clearPlot());
-                this.saveBtn.addEventListener('click', () => this.saveData());
+            async predictSegments(audioData) {
+                if (!this.isReady) {
+                    throw new Error('模型尚未準備完成');
+                }
+
+                const features = await this.extractFeatures(audioData);
+                const stepSize = Math.floor(this.sampleRate * this.segmentDuration);
+                const hopSize = Math.floor(stepSize / 2);
+                
+                const timestamps = [];
+                for (let i = 0; i < features.length; i++) {
+                    timestamps.push(i * hopSize / this.sampleRate);
+                }
+
+                if (features.length === 0) {
+                    return [];
+                }
+
+                const inputTensor = tf.tensor2d(features);
+                const predictions = this.model.predict(inputTensor);
+                const predArray = await predictions.data();
+                
+                inputTensor.dispose();
+                predictions.dispose();
+
+                const results = [];
+                for (let i = 0; i < predArray.length; i++) {
+                    const confidence = predArray[i];
+                    const label = confidence > this.threshold ? 'breath' : 'non-breath';
+                    
+                    // 識別聲音類型
+                    const soundType = this.identifySoundType(features[i]);
+                    
+                    results.push({
+                        startTime: timestamps[i],
+                        endTime: timestamps[i] + this.segmentDuration,
+                        label: label,
+                        confidence: confidence,
+                        soundType: soundType,
+                        features: features[i],
+                        userLabel: null // 用戶自定義標籤
+                    });
+                }
+
+                return results;
+            }
+
+            identifySoundType(features) {
+                // 基於特徵識別聲音類型
+                const rms = features[0];
+                const mean = features[1];
+                const maxVal = features[2];
+                const zeroCrossing = features[3];
+                
+                // 簡單的規則分類
+                if (rms > 0.3 && zeroCrossing < 0.1) {
+                    return 'speech';
+                } else if (rms > 0.5 && maxVal > 0.8) {
+                    return 'impact';
+                } else if (rms > 0.2 && rms < 0.4 && zeroCrossing > 0.2) {
+                    return 'noise';
+                } else if (rms > 0.1 && rms < 0.3 && zeroCrossing < 0.05) {
+                    return 'music';
+                } else if (rms > 0.4 && zeroCrossing > 0.3) {
+                    return 'nature';
+                } else if (rms > 0.3 && maxVal < 0.5) {
+                    return 'electronic';
+                } else {
+                    return 'unknown';
+                }
+            }
+
+            getSoundTypeLabel(type) {
+                const labels = {
+                    'speech': '🗣️ 語音',
+                    'noise': '🔊 環境噪音',
+                    'impact': '💥 衝擊聲',
+                    'music': '🎵 音樂',
+                    'electronic': '📱 電子聲',
+                    'nature': '🌊 自然聲',
+                    'medical': '🩺 醫療設備',
+                    'unknown': '❓ 未知'
+                };
+                return labels[type] || '❓ 未知';
+            }
+
+            setThreshold(threshold) {
+                this.threshold = threshold;
+            }
+
+            setSegmentDuration(duration) {
+                this.segmentDuration = duration;
             }
         }
 
-        // =====================================================
-        //  Main
-        // =====================================================
-        document.addEventListener('DOMContentLoaded', () => {
-            new FlowMonitorApp();
+        // ============================================
+        // 音頻處理
+        // ============================================
+        class AudioProcessor {
+            static async decodeAudioFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const arrayBuffer = e.target.result;
+                            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                            
+                            const sampleRate = 22050;
+                            const rawData = audioBuffer.getChannelData(0);
+                            const resampledData = this.resample(rawData, audioBuffer.sampleRate, sampleRate);
+                            
+                            resolve(resampledData);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            static resample(data, originalRate, targetRate) {
+                if (originalRate === targetRate) return data;
+                
+                const ratio = originalRate / targetRate;
+                const newLength = Math.floor(data.length / ratio);
+                const result = new Float32Array(newLength);
+                
+                for (let i = 0; i < newLength; i++) {
+                    const pos = i * ratio;
+                    const idx = Math.floor(pos);
+                    const frac = pos - idx;
+                    if (idx + 1 < data.length) {
+                        result[i] = data[idx] * (1 - frac) + data[idx + 1] * frac;
+                    } else {
+                        result[i] = data[idx];
+                    }
+                }
+                
+                return result;
+            }
+
+            static getDuration(file) {
+                return new Promise((resolve) => {
+                    const audio = new Audio();
+                    audio.onloadedmetadata = () => {
+                        resolve(audio.duration);
+                        audio.src = '';
+                    };
+                    audio.src = URL.createObjectURL(file);
+                });
+            }
+        }
+
+        // ============================================
+        // UI 控制
+        // ============================================
+        const classifier = new BreathClassifier();
+        let files = [];
+        let allResults = [];
+        let isProcessing = false;
+        let segmentCounter = 0;
+
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const uploadSection = document.getElementById('uploadSection');
+        const classifyBtn = document.getElementById('classifyBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsList = document.getElementById('resultsList');
+
+        // 初始化
+        async function init() {
+            try {
+                const success = await classifier.initialize();
+                if (success) {
+                    console.log('✅ 模型已就緒');
+                }
+            } catch (error) {
+                console.error('初始化錯誤:', error);
+            }
+        }
+
+        // 檔案處理
+        function handleFiles(selectedFiles) {
+            for (const file of selectedFiles) {
+                const validTypes = ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/m4a', 'audio/flac', 'audio/aac', 'audio/ogg'];
+                if (!validTypes.includes(file.type) && !file.name.match(/\.(wav|mp3|m4a|flac|aac|ogg)$/i)) {
+                    continue;
+                }
+                
+                if (!files.some(f => f.name === file.name && f.size === file.size)) {
+                    files.push(file);
+                }
+            }
+            updateFileList();
+        }
+
+        function updateFileList() {
+            if (files.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+            
+            fileList.innerHTML = files.map((file, index) => `
+                <div class="file-tag">
+                    🎵 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                    <span class="remove" onclick="removeFile(${index})">✕</span>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            files.splice(index, 1);
+            updateFileList();
+            if (files.length === 0) {
+                resultsContainer.style.display = 'none';
+            }
+        }
+
+        function clearAll() {
+            files = [];
+            allResults = [];
+            fileList.innerHTML = '';
+            resultsContainer.style.display = 'none';
+            progressContainer.style.display = 'none';
+            fileInput.value = '';
+        }
+
+        // 分類主邏輯
+        async function classifyFiles() {
+            if (isProcessing) return;
+            if (files.length === 0) {
+                alert('請先上傳音檔！');
+                return;
+            }
+
+            isProcessing = true;
+            classifyBtn.disabled = true;
+            classifyBtn.textContent = '⏳ 處理中...';
+
+            classifier.setThreshold(parseFloat(document.getElementById('threshold').value));
+            classifier.setSegmentDuration(parseFloat(document.getElementById('segmentDuration').value));
+
+            progressContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            allResults = [];
+
+            const totalFiles = files.length;
+
+            for (let i = 0; i < totalFiles; i++) {
+                const file = files[i];
+                updateProgress(i, totalFiles, `正在處理: ${file.name}`);
+
+                try {
+                    const audioData = await AudioProcessor.decodeAudioFile(file);
+                    const segments = await classifier.predictSegments(audioData);
+                    const duration = await AudioProcessor.getDuration(file);
+                    
+                    const breathCount = segments.filter(s => s.label === 'breath').length;
+                    const nonBreathCount = segments.length - breathCount;
+                    
+                    // 統計聲音類型
+                    const soundTypeStats = {};
+                    segments.forEach(s => {
+                        const type = s.soundType || 'unknown';
+                        soundTypeStats[type] = (soundTypeStats[type] || 0) + 1;
+                    });
+
+                    allResults.push({
+                        fileName: file.name,
+                        fileSize: file.size,
+                        duration: duration,
+                        totalSegments: segments.length,
+                        breathCount: breathCount,
+                        nonBreathCount: nonBreathCount,
+                        breathRatio: segments.length > 0 ? breathCount / segments.length : 0,
+                        segments: segments,
+                        soundTypeStats: soundTypeStats,
+                        audioData: audioData
+                    });
+
+                } catch (error) {
+                    console.error(`處理 ${file.name} 時發生錯誤:`, error);
+                    allResults.push({
+                        fileName: file.name,
+                        error: error.message
+                    });
+                }
+            }
+
+            displayResults(allResults);
+            
+            isProcessing = false;
+            classifyBtn.disabled = false;
+            classifyBtn.textContent = '🚀 開始分類';
+            progressContainer.style.display = 'none';
+        }
+
+        function updateProgress(current, total, text) {
+            const percent = ((current + 1) / total * 100).toFixed(1);
+            progressFill.style.width = percent + '%';
+            progressFill.textContent = percent + '%';
+            progressText.textContent = text;
+        }
+
+        function displayResults(results) {
+            resultsContainer.style.display = 'block';
+            
+            let html = '';
+            
+            for (const result of results) {
+                if (result.error) {
+                    html += `
+                        <div class="result-card" style="border-left-color: #fc8181;">
+                            <div class="result-header">
+                                <span class="result-filename">❌ ${result.fileName}</span>
+                            </div>
+                            <p style="color: #fc8181;">錯誤: ${result.error}</p>
+                        </div>
+                    `;
+                    continue;
+                }
+
+                const breathPercent = (result.breathRatio * 100).toFixed(1);
+                const fileId = 'result-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+                
+                // 聲音類型統計
+                let soundTypeHtml = '';
+                for (const [type, count] of Object.entries(result.soundTypeStats)) {
+                    const label = classifier.getSoundTypeLabel(type);
+                    soundTypeHtml += `<span class="sound-tag">${label}: ${count}</span>`;
+                }
+
+                html += `
+                    <div class="result-card" id="${fileId}">
+                        <div class="result-header">
+                            <span class="result-filename">🎵 ${result.fileName}</span>
+                            <span style="color:#aaa;">時長: ${result.duration.toFixed(1)}秒</span>
+                        </div>
+                        
+                        <div class="result-stats">
+                            <div class="stat-item">
+                                <div class="label">總片段</div>
+                                <div class="value info">${result.totalSegments}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="label">呼吸聲</div>
+                                <div class="value breath">${result.breathCount}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="label">非呼吸聲</div>
+                                <div class="value non-breath">${result.nonBreathCount}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="label">呼吸比例</div>
+                                <div class="value">${breathPercent}%</div>
+                            </div>
+                        </div>
+
+                        <div class="sound-type-tags">
+                            ${soundTypeHtml}
+                        </div>
+
+                        <div class="tagging-tools">
+                            <span style="color:#aaa;font-size:13px;">🏷️ 批量標籤:</span>
+                            <button class="tag-breath" onclick="batchTag('${fileId}', 'breath')">
+                                ✅ 標記為呼吸
+                            </button>
+                            <button class="tag-non-breath" onclick="batchTag('${fileId}', 'non-breath')">
+                                ❌ 標記為非呼吸
+                            </button>
+                            <button class="tag-clear" onclick="batchTag('${fileId}', 'clear')">
+                                🗑️ 清除標籤
+                            </button>
+                            <span style="color:#aaa;font-size:12px;margin-left:10px;">
+                                點擊片段可切換標籤
+                            </span>
+                        </div>
+
+                        <div class="segment-list">
+                            ${result.segments.map((seg, index) => {
+                                const confidenceClass = seg.confidence > 0.7 ? 'high' : 
+                                                      seg.confidence > 0.4 ? 'medium' : 'low';
+                                const badgeClass = seg.label === 'breath' ? 'badge-breath' : 
+                                                  (seg.userLabel === 'breath' ? 'badge-breath' : 'badge-non-breath');
+                                const displayLabel = seg.userLabel || seg.label;
+                                const soundTypeLabel = classifier.getSoundTypeLabel(seg.soundType);
+                                
+                                return `
+                                    <div class="segment-item ${displayLabel}" 
+                                         onclick="toggleSegmentLabel('${fileId}', ${index})"
+                                         title="點擊切換標籤">
+                                        <span class="segment-time">
+                                            ${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s
+                                        </span>
+                                        <span class="segment-label">
+                                            <span class="badge ${badgeClass}">${displayLabel}</span>
+                                            <span class="sound-type">${soundTypeLabel}</span>
+                                            <span style="font-size:12px;color:#888;">
+                                                ${(seg.confidence * 100).toFixed(1)}%
+                                            </span>
+                                            <span class="confidence-bar">
+                                                <span class="confidence-fill ${confidenceClass}" 
+                                                      style="width: ${seg.confidence * 100}%;"></span>
+                                            </span>
+                                        </span>
+                                        <span style="font-size:11px;color:#666;">
+                                            #${index + 1}
+                                        </span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
+                            <button class="btn-info" onclick="exportSegmentsForFile('${fileId}')" 
+                                    style="padding:6px 15px;border:none;border-radius:6px;cursor:pointer;font-size:12px;">
+                                📋 匯出此檔案片段
+                            </button>
+                            <button class="btn-warning" onclick="createFolderStructure('${fileId}')"
+                                    style="padding:6px 15px;border:none;border-radius:6px;cursor:pointer;font-size:12px;">
+                                📁 建立分類資料夾
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            resultsList.innerHTML = html;
+            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ============================================
+        // 標籤功能
+        // ============================================
+        function toggleSegmentLabel(fileId, index) {
+            const result = findResultByFileId(fileId);
+            if (!result) return;
+            
+            const seg = result.segments[index];
+            if (!seg) return;
+            
+            // 切換標籤
+            if (seg.userLabel === 'breath') {
+                seg.userLabel = 'non-breath';
+            } else if (seg.userLabel === 'non-breath') {
+                seg.userLabel = null;
+            } else {
+                seg.userLabel = 'breath';
+            }
+            
+            // 更新統計
+            updateResultStats(fileId);
+            refreshSegmentDisplay(fileId);
+        }
+
+        function batchTag(fileId, action) {
+            const result = findResultByFileId(fileId);
+            if (!result) return;
+            
+            result.segments.forEach(seg => {
+                if (action === 'breath') {
+                    seg.userLabel = 'breath';
+                } else if (action === 'non-breath') {
+                    seg.userLabel = 'non-breath';
+                } else {
+                    seg.userLabel = null;
+                }
+            });
+            
+            updateResultStats(fileId);
+            refreshSegmentDisplay(fileId);
+        }
+
+        function findResultByFileId(fileId) {
+            // 從顯示的結果中查找
+            const card = document.getElementById(fileId);
+            if (!card) return null;
+            
+            // 從 allResults 中查找對應的檔案
+            const fileName = card.querySelector('.result-filename')?.textContent?.replace('🎵 ', '') || '';
+            return allResults.find(r => r.fileName === fileName);
+        }
+
+        function updateResultStats(fileId) {
+            const result = findResultByFileId(fileId);
+            if (!result) return;
+            
+            const breathCount = result.segments.filter(s => (s.userLabel || s.label) === 'breath').length;
+            const nonBreathCount = result.segments.length - breathCount;
+            
+            result.breathCount = breathCount;
+            result.nonBreathCount = nonBreathCount;
+            result.breathRatio = result.segments.length > 0 ? breathCount / result.segments.length : 0;
+            
+            // 更新顯示
+            const card = document.getElementById(fileId);
+            if (card) {
+                const stats = card.querySelectorAll('.stat-item .value');
+                if (stats.length >= 3) {
+                    stats[0].textContent = result.totalSegments;
+                    stats[1].textContent = breathCount;
+                    stats[2].textContent = nonBreathCount;
+                    const ratioEl = card.querySelector('.stat-item:last-child .value');
+                    if (ratioEl) {
+                        ratioEl.textContent = (result.breathRatio * 100).toFixed(1) + '%';
+                    }
+                }
+            }
+        }
+
+        function refreshSegmentDisplay(fileId) {
+            const card = document.getElementById(fileId);
+            if (!card) return;
+            
+            const result = findResultByFileId(fileId);
+            if (!result) return;
+            
+            const segmentList = card.querySelector('.segment-list');
+            if (!segmentList) return;
+            
+            const filterMode = document.getElementById('filterMode').value;
+            const minConfidence = parseFloat(document.getElementById('minConfidence').value);
+            
+            let filteredSegments = result.segments;
+            
+            if (filterMode === 'breath') {
+                filteredSegments = filteredSegments.filter(s => (s.userLabel || s.label) === 'breath');
+            } else if (filterMode === 'non-breath') {
+                filteredSegments = filteredSegments.filter(s => (s.userLabel || s.label) === 'non-breath');
+            } else if (filterMode === 'high-confidence') {
+                filteredSegments = filteredSegments.filter(s => s.confidence > 0.7);
+            }
+            
+            // 過濾低信心度
+            if (minConfidence > 0) {
+                filteredSegments = filteredSegments.filter(s => s.confidence >= minConfidence);
+            }
+            
+            segmentList.innerHTML = filteredSegments.map((seg, idx) => {
+                const originalIndex = result.segments.indexOf(seg);
+                const confidenceClass = seg.confidence > 0.7 ? 'high' : 
+                                      seg.confidence > 0.4 ? 'medium' : 'low';
+                const displayLabel = seg.userLabel || seg.label;
+                const badgeClass = displayLabel === 'breath' ? 'badge-breath' : 'badge-non-breath';
+                const soundTypeLabel = classifier.getSoundTypeLabel(seg.soundType);
+                
+                return `
+                    <div class="segment-item ${displayLabel}" 
+                         onclick="toggleSegmentLabel('${fileId}', ${originalIndex})"
+                         title="點擊切換標籤">
+                        <span class="segment-time">
+                            ${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s
+                        </span>
+                        <span class="segment-label">
+                            <span class="badge ${badgeClass}">${displayLabel}</span>
+                            <span class="sound-type">${soundTypeLabel}</span>
+                            <span style="font-size:12px;color:#888;">
+                                ${(seg.confidence * 100).toFixed(1)}%
+                            </span>
+                            <span class="confidence-bar">
+                                <span class="confidence-fill ${confidenceClass}" 
+                                      style="width: ${seg.confidence * 100}%;"></span>
+                            </span>
+                        </span>
+                        <span style="font-size:11px;color:#666;">
+                            #${originalIndex + 1}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================
+        // 匯出功能
+        // ============================================
+        function exportAllResults() {
+            if (allResults.length === 0) {
+                alert('沒有結果可以匯出');
+                return;
+            }
+            
+            let report = '=' .repeat(70) + '\n';
+            report += '呼吸音分類報告\n';
+            report += '生成時間: ' + new Date().toLocaleString() + '\n';
+            report += '=' .repeat(70) + '\n\n';
+            
+            let totalBreath = 0;
+            let totalSegments = 0;
+            
+            for (const result of allResults) {
+                if (result.error) continue;
+                
+                report += `檔案: ${result.fileName}\n`;
+                report += `時長: ${result.duration.toFixed(2)} 秒\n`;
+                report += `總片段: ${result.totalSegments}\n`;
+                report += `呼吸片段: ${result.breathCount}\n`;
+                report += `非呼吸片段: ${result.nonBreathCount}\n`;
+                report += `呼吸比例: ${(result.breathRatio * 100).toFixed(2)}%\n`;
+                report += '\n片段詳情:\n';
+                report += '-' .repeat(50) + '\n';
+                
+                result.segments.forEach((seg, i) => {
+                    const label = seg.userLabel || seg.label;
+                    const type = classifier.getSoundTypeLabel(seg.soundType);
+                    report += `  ${i+1}. ${seg.startTime.toFixed(2)}s-${seg.endTime.toFixed(2)}s | ${label} | ${type} | 信心度: ${(seg.confidence * 100).toFixed(1)}%\n`;
+                });
+                
+                report += '\n' + '=' .repeat(50) + '\n\n';
+                
+                totalBreath += result.breathCount;
+                totalSegments += result.totalSegments;
+            }
+            
+            report += '=' .repeat(70) + '\n';
+            report += `總計: ${allResults.length} 個音檔, ${totalSegments} 個片段, ${totalBreath} 個呼吸片段\n`;
+            report += `整體呼吸比例: ${(totalBreath / totalSegments * 100).toFixed(2)}%\n`;
+            report += '=' .repeat(70) + '\n';
+            
+            // 下載報告
+            const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `呼吸分類報告_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportSegmentsCSV() {
+            if (allResults.length === 0) {
+                alert('沒有結果可以匯出');
+                return;
+            }
+            
+            let csv = '檔案名稱,開始時間,結束時間,標籤,聲音類型,信心度,用戶標籤\n';
+            
+            for (const result of allResults) {
+                if (result.error) continue;
+                
+                for (const seg of result.segments) {
+                    const label = seg.userLabel || seg.label;
+                    const type = classifier.getSoundTypeLabel(seg.soundType);
+                    csv += `"${result.fileName}",${seg.startTime.toFixed(3)},${seg.endTime.toFixed(3)},${seg.label},${type},${seg.confidence.toFixed(4)},"${seg.userLabel || ''}"\n`;
+                }
+            }
+            
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `片段分類_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportSegmentsForFile(fileId) {
+            const result = findResultByFileId(fileId);
+            if (!result) return;
+            
+            let text = `檔案: ${result.fileName}\n`;
+            text += `時長: ${result.duration.toFixed(2)} 秒\n`;
+            text += `總片段: ${result.totalSegments}\n`;
+            text += `呼吸片段: ${result.breathCount}\n`;
+            text += `非呼吸片段: ${result.nonBreathCount}\n`;
+            text += '=' .repeat(50) + '\n\n';
+            text += '編號 | 時間區間 | 標籤 | 聲音類型 | 信心度\n';
+            text += '-' .repeat(60) + '\n';
+            
+            result.segments.forEach((seg, i) => {
+                const label = seg.userLabel || seg.label;
+                const type = classifier.getSoundTypeLabel(seg.soundType);
+                text += `${String(i+1).padStart(3)} | ${seg.startTime.toFixed(2)}s-${seg.endTime.toFixed(2)}s | ${label.padEnd(8)} | ${type.padEnd(10)} | ${(seg.confidence * 100).toFixed(1)}%\n`;
+            });
+            
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${result.fileName.replace(/\.[^.]+$/, '')}_片段詳情.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ============================================
+        // 資料夾結構建立
+        // ============================================
+        function createFolderStructure(fileId) {
+            const result = findResultByFileId(fileId);
+            if (!result) return;
+            
+            // 建立分類資料夾結構的文本描述
+            let structure = `📁 ${result.fileName.replace(/\.[^.]+$/, '')}_分類結果/\n`;
+            structure += `├── 📁 呼吸聲片段/\n`;
+            structure += `├── 📁 非呼吸聲片段/\n`;
+            structure += `│   ├── 📁 語音/\n`;
+            structure += `│   ├── 📁 環境噪音/\n`;
+            structure += `│   ├── 📁 衝擊聲/\n`;
+            structure += `│   ├── 📁 音樂/\n`;
+            structure += `│   ├── 📁 電子聲/\n`;
+            structure += `│   ├── 📁 自然聲/\n`;
+            structure += `│   └── 📁 其他/\n`;
+            structure += `└── 📄 分類報告.txt\n\n`;
+            
+            structure += '片段分類詳情:\n';
+            structure += '=' .repeat(50) + '\n';
+            
+            const breathSegments = result.segments.filter(s => (s.userLabel || s.label) === 'breath');
+            const nonBreathSegments = result.segments.filter(s => (s.userLabel || s.label) === 'non-breath');
+            
+            structure += `\n🟢 呼吸聲片段 (${breathSegments.length} 個):\n`;
+            breathSegments.forEach((seg, i) => {
+                structure += `  ${i+1}. ${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s (信心度: ${(seg.confidence * 100).toFixed(1)}%)\n`;
+            });
+            
+            structure += `\n🔴 非呼吸聲片段 (${nonBreathSegments.length} 個):\n`;
+            nonBreathSegments.forEach((seg, i) => {
+                const type = classifier.getSoundTypeLabel(seg.soundType);
+                structure += `  ${i+1}. ${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s | ${type} (信心度: ${(seg.confidence * 100).toFixed(1)}%)\n`;
+            });
+            
+            // 顯示在模態框中
+            showModal('folderStructureModal', structure);
+        }
+
+        function showModal(title, content) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 style="color:#fff;">📁 資料夾結構</h2>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <pre style="color:#ccc;font-family:'Courier New',monospace;font-size:13px;line-height:1.8;white-space:pre-wrap;background:rgba(0,0,0,0.3);padding:20px;border-radius:8px;">${content}</pre>
+                    <div style="margin-top:15px;display:flex;gap:10px;">
+                        <button class="btn-primary" onclick="downloadFolderStructure(this.closest('.modal').querySelector('pre').textContent)">
+                            💾 下載結構
+                        </button>
+                        <button class="btn-danger" onclick="this.closest('.modal').remove()">關閉</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function downloadFolderStructure(content) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `資料夾結構_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'none';
+        }
+
+        function showTaggingGuide() {
+            document.getElementById('taggingGuideModal').style.display = 'block';
+        }
+
+        // ============================================
+        // 事件綁定
+        // ============================================
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+            e.target.value = '';
         });
+
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        uploadSection.addEventListener('click', (e) => {
+            if (e.target === uploadSection || e.target.closest('.upload-section')) {
+                fileInput.click();
+            }
+        });
+
+        document.getElementById('threshold').addEventListener('input', function() {
+            document.getElementById('thresholdValue').textContent = parseFloat(this.value).toFixed(2);
+        });
+
+        document.getElementById('minConfidence').addEventListener('input', function() {
+            document.getElementById('minConfidenceValue').textContent = parseFloat(this.value).toFixed(2);
+        });
+
+        document.getElementById('filterMode').addEventListener('change', function() {
+            // 重新整理顯示
+            const cards = document.querySelectorAll('.result-card');
+            cards.forEach(card => {
+                const fileId = card.id;
+                if (fileId && fileId.startsWith('result-')) {
+                    refreshSegmentDisplay(fileId);
+                }
+            });
+        });
+
+        document.getElementById('minConfidence').addEventListener('input', function() {
+            const cards = document.querySelectorAll('.result-card');
+            cards.forEach(card => {
+                const fileId = card.id;
+                if (fileId && fileId.startsWith('result-')) {
+                    refreshSegmentDisplay(fileId);
+                }
+            });
+        });
+
+        // 點擊模態框外部關閉
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+
+        // ============================================
+        // 啟動
+        // ============================================
+        init();
+
+        console.log('🫁 專業呼吸音分類器已載入');
+        console.log('📌 功能列表:');
+        console.log('  ✅ 自動分類呼吸/非呼吸聲');
+        console.log('  ✅ 聲音類型識別 (語音/噪音/音樂等)');
+        console.log('  ✅ 手動標籤功能 (點擊片段切換)');
+        console.log('  ✅ 批量標籤工具');
+        console.log('  ✅ 匯出報告 (TXT/CSV)');
+        console.log('  ✅ 資料夾結構建立');
+        console.log('  ✅ 信心度過濾與顯示');
+
+        // 示範功能
+        window.demo = async function() {
+            const sampleRate = 22050;
+            const duration = 3;
+            const samples = sampleRate * duration;
+            const audioData = new Float32Array(samples);
+            
+            for (let i = 0; i < samples; i++) {
+                const t = i / sampleRate;
+                const breath = Math.sin(2 * Math.PI * 0.5 * t) * Math.exp(-Math.pow((t - 1.5) * 2, 2));
+                const noise = (Math.random() - 0.5) * 0.1;
+                audioData[i] = breath * 0.5 + noise;
+            }
+            
+            const blob = new Blob([audioData.buffer], { type: 'audio/wav' });
+            const file = new File([blob], 'demo_breath.wav', { type: 'audio/wav' });
+            
+            files.push(file);
+            updateFileList();
+            console.log('✅ 示範音檔已添加');
+        };
+
+        console.log('💡 提示: 在控制台執行 demo() 可以添加示範音檔');
     </script>
 </body>
 </html>
