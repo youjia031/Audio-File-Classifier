@@ -181,13 +181,50 @@
         .control-group input, .control-group select {
             padding: 8px 12px;
             border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
             color: #fff;
             font-size: 14px;
         }
         .control-group input[type="range"] { padding: 0; accent-color: #667eea; }
         .range-value { color: #667eea; font-weight: 700; }
+
+        /* ===== 修復選單樣式 ===== */
+        select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            background: #1a1a2e;
+            color: #ffffff !important;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            min-width: 200px;
+            appearance: auto;
+            -webkit-appearance: auto;
+            -moz-appearance: auto;
+        }
+        select:hover {
+            border-color: #667eea;
+            background: #222244;
+        }
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+        select option {
+            background: #1a1a2e;
+            color: #ffffff !important;
+            padding: 8px 12px;
+        }
+        select option:hover {
+            background: #667eea;
+        }
+        select option:checked {
+            background: #667eea;
+            color: #fff;
+        }
 
         .separation-result {
             display: grid;
@@ -241,16 +278,19 @@
         .review-audio-container .audio-box h4 { color: #aaa; margin-bottom: 8px; font-size: 13px; }
         .review-audio-container .audio-box audio { width: 100%; }
 
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(102,126,234,0.3); border-radius: 3px; }
+
         @media (max-width: 768px) {
             .header h1 { font-size: 24px; }
             .separation-result { grid-template-columns: 1fr; }
             .review-audio-container { grid-template-columns: 1fr; }
             .tab { font-size: 13px; padding: 10px 15px; min-width: 60px; }
             .controls-grid { grid-template-columns: 1fr; }
+            select { min-width: 100%; }
         }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb { background: rgba(102,126,234,0.3); border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -294,8 +334,8 @@
                 <h3>📊 頻譜分析</h3>
                 <p style="color:#aaa;margin-bottom:10px;">選擇音檔查看頻譜，點擊圖上位置可播放該頻率</p>
                 <div style="margin-bottom:10px;">
-                    <select id="spectrumSelect" onchange="showSpectrum()" style="padding:8px 15px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;min-width:200px;">
-                        <option value="">-- 請選擇 --</option>
+                    <select id="spectrumSelect" onchange="showSpectrum()">
+                        <option value="">-- 請選擇音檔 --</option>
                     </select>
                 </div>
                 <div class="spectrum-container">
@@ -308,13 +348,13 @@
                 </div>
                 <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
                     <span style="color:#888;font-size:12px;">FFT大小:</span>
-                    <select id="fftSizeSelect" onchange="showSpectrum()" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;">
+                    <select id="fftSizeSelect" onchange="showSpectrum()" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;">
                         <option value="512">512</option>
                         <option value="1024" selected>1024</option>
                         <option value="2048">2048</option>
                     </select>
                     <span style="color:#888;font-size:12px;margin-left:10px;">顯示:</span>
-                    <select id="spectrumMode" onchange="showSpectrum()" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;">
+                    <select id="spectrumMode" onchange="showSpectrum()" style="padding:4px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;">
                         <option value="linear">線性</option>
                         <option value="log" selected>對數(dB)</option>
                     </select>
@@ -330,8 +370,8 @@
                 <p style="color:#aaa;margin-bottom:10px;">設定頻率範圍，分離出特定頻段的聲音</p>
                 
                 <div style="margin-bottom:10px;">
-                    <select id="separateSelect" onchange="updateSeparateUI()" style="padding:8px 15px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;min-width:200px;">
-                        <option value="">-- 請選擇 --</option>
+                    <select id="separateSelect" onchange="updateSeparateUI()">
+                        <option value="">-- 請選擇音檔 --</option>
                     </select>
                 </div>
 
@@ -348,7 +388,7 @@
                     </div>
                     <div class="control-group">
                         <label>濾波器斜率</label>
-                        <select id="filterSlope" style="padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;">
+                        <select id="filterSlope" style="padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;">
                             <option value="6">6 dB/oct</option>
                             <option value="12" selected>12 dB/oct</option>
                             <option value="24">24 dB/oct</option>
@@ -358,10 +398,10 @@
                 </div>
 
                 <div class="frequency-presets">
-                    <button class="preset-btn" onclick="setPreset(100,400,'🫁 呼吸')">🫁 呼吸 (100-400Hz)</button>
-                    <button class="preset-btn" onclick="setPreset(300,3400,'🗣️ 語音')">🗣️ 語音 (300-3400Hz)</button>
-                    <button class="preset-btn" onclick="setPreset(0,100,'🔊 低頻')">🔊 低頻 (0-100Hz)</button>
-                    <button class="preset-btn" onclick="setPreset(2000,5000,'🎵 高頻')">🎵 高頻 (2000-5000Hz)</button>
+                    <button class="preset-btn" onclick="setPreset(100,400,'🫁 呼吸', this)">🫁 呼吸 (100-400Hz)</button>
+                    <button class="preset-btn" onclick="setPreset(300,3400,'🗣️ 語音', this)">🗣️ 語音 (300-3400Hz)</button>
+                    <button class="preset-btn" onclick="setPreset(0,100,'🔊 低頻', this)">🔊 低頻 (0-100Hz)</button>
+                    <button class="preset-btn" onclick="setPreset(2000,5000,'🎵 高頻', this)">🎵 高頻 (2000-5000Hz)</button>
                 </div>
 
                 <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
@@ -537,7 +577,7 @@
                 const sel = document.getElementById(id);
                 if (!sel) continue;
                 const current = sel.value;
-                sel.innerHTML = '<option value="">-- 請選擇 --</option>';
+                sel.innerHTML = '<option value="">-- 請選擇音檔 --</option>';
                 for (const name of names) {
                     sel.innerHTML += `<option value="${name}">${name}</option>`;
                 }
@@ -870,7 +910,7 @@
             }
         }
 
-        function setPreset(low, high, label) {
+        function setPreset(low, high, label, btn) {
             document.getElementById('lowCut').value = low;
             document.getElementById('highCut').value = high;
             document.getElementById('lowCutVal').textContent = `${low} Hz`;
@@ -880,7 +920,7 @@
             
             // 高亮按鈕
             document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (btn) btn.classList.add('active');
         }
 
         function applySeparation() {
@@ -922,8 +962,16 @@
             if (!data) return;
             
             const container = document.getElementById('separationResult');
+            
+            // 釋放舊的 URL
+            if (container._origURL) URL.revokeObjectURL(container._origURL);
+            if (container._filtURL) URL.revokeObjectURL(container._filtURL);
+            
             const origURL = URL.createObjectURL(new Blob([float32ToWav(data.original, data.sampleRate)], { type: 'audio/wav' }));
             const filtURL = URL.createObjectURL(new Blob([float32ToWav(data.filtered, data.sampleRate)], { type: 'audio/wav' }));
+            
+            container._origURL = origURL;
+            container._filtURL = filtURL;
             
             container.innerHTML = `
                 <div style="color:#aaa;font-size:13px;margin-bottom:10px;">
@@ -956,7 +1004,7 @@
             a.href = url;
             a.download = `${fileName}_filtered_${data.lowCut}-${data.highCut}Hz.wav`;
             a.click();
-            URL.revokeObjectURL(url);
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
         }
 
         function useForReview(fileName) {
@@ -981,8 +1029,16 @@
             }
             
             const data = separatedData[target];
+            
+            // 釋放舊的 URL
+            if (container._origURL) URL.revokeObjectURL(container._origURL);
+            if (container._filtURL) URL.revokeObjectURL(container._filtURL);
+            
             const origURL = URL.createObjectURL(new Blob([float32ToWav(data.original, data.sampleRate)], { type: 'audio/wav' }));
             const filtURL = URL.createObjectURL(new Blob([float32ToWav(data.filtered, data.sampleRate)], { type: 'audio/wav' }));
+            
+            container._origURL = origURL;
+            container._filtURL = filtURL;
             
             container.innerHTML = `
                 <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:15px;border:1px solid rgba(255,255,255,0.05);">
@@ -1005,7 +1061,7 @@
                     <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
                         <button class="btn btn-success" onclick="markAs('breath', '${target}')">✅ 標記為呼吸聲</button>
                         <button class="btn btn-danger" onclick="markAs('non-breath', '${target}')">❌ 標記為非呼吸聲</button>
-                        <button class="btn btn-info" onclick="alert('💡 呼吸聲特徵:\n• 頻率約 100-400Hz\n• 聲音平滑有規律\n• 持續 0.2-2 秒\n• 聽起來像「嘶~」或「呼~」')">📖 辨識提示</button>
+                        <button class="btn btn-info" onclick="showBreathTips()">📖 辨識提示</button>
                     </div>
                     
                     <div id="markResult" style="margin-top:10px;color:#aaa;font-size:14px;"></div>
@@ -1024,6 +1080,21 @@
                 </span>
             `;
             resultDiv.style.color = label === 'breath' ? '#48bb78' : '#fc8181';
+        }
+
+        function showBreathTips() {
+            alert('💡 呼吸聲辨識提示:\n\n' +
+                  '✅ 呼吸聲特徵:\n' +
+                  '• 頻率約在 100-400 Hz 之間\n' +
+                  '• 聲音平滑、有規律的節奏\n' +
+                  '• 持續時間約 0.2-2 秒\n' +
+                  '• 聽起來像「嘶~」或「呼~」的聲音\n\n' +
+                  '❌ 非呼吸聲常見類型:\n' +
+                  '• 說話聲 - 有語調變化\n' +
+                  '• 環境噪音 - 持續性、無規律\n' +
+                  '• 突發聲 - 短暫、高振幅\n' +
+                  '• 音樂聲 - 有旋律和節奏\n\n' +
+                  '💡 建議: 先聽分離後的聲音，如果聽起來像呼吸聲就標記為「呼吸聲」');
         }
 
         // ========== 初始化 ==========
