@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>呼吸音檢測器 - 零樣本版</title>
+    <title>呼吸音檢測器 - 修復版</title>
     
     <style>
         * {
@@ -25,7 +25,6 @@
             margin: 0 auto;
         }
 
-        /* 標題 */
         .header {
             background: rgba(255,255,255,0.05);
             backdrop-filter: blur(10px);
@@ -59,7 +58,6 @@
             margin-top: 10px;
         }
 
-        /* 卡片 */
         .card {
             background: rgba(255,255,255,0.05);
             border-radius: 12px;
@@ -76,7 +74,6 @@
             gap: 10px;
         }
 
-        /* 上傳區域 */
         .upload-zone {
             border: 3px dashed rgba(255,255,255,0.15);
             border-radius: 12px;
@@ -101,7 +98,6 @@
             margin-bottom: 10px;
         }
 
-        /* 按鈕 */
         .btn {
             padding: 10px 25px;
             border: none;
@@ -145,16 +141,6 @@
             box-shadow: 0 5px 20px rgba(229, 62, 62, 0.4);
         }
 
-        .btn-warning {
-            background: linear-gradient(135deg, #f6ad55, #ed8936);
-            color: #fff;
-        }
-
-        .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(237, 137, 54, 0.4);
-        }
-
         .btn-info {
             background: linear-gradient(135deg, #63b3ed, #4299e1);
             color: #fff;
@@ -176,7 +162,6 @@
             transform: none !important;
         }
 
-        /* 進度條 */
         .progress-bar {
             width: 100%;
             height: 20px;
@@ -197,32 +182,92 @@
             color: #fff;
         }
 
-        /* 波形視覺化 */
-        .waveform-container {
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            position: relative;
+        .file-tag {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            margin: 3px;
         }
 
-        #waveformCanvas {
-            width: 100%;
-            height: 120px;
-            border-radius: 4px;
+        .file-tag .remove {
             cursor: pointer;
+            color: #fc8181;
+            font-weight: bold;
         }
 
-        .waveform-overlay {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
-            bottom: 15px;
-            pointer-events: none;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
         }
 
-        /* 檢測結果 */
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-box .number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .stat-box .label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .stat-box.breath .number { color: #48bb78; }
+        .stat-box.non-breath .number { color: #fc8181; }
+        .stat-box.total .number { color: #63b3ed; }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .control-group input, .control-group select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .control-group input[type="range"] {
+            padding: 0;
+            accent-color: #667eea;
+        }
+
+        .range-value {
+            color: #667eea;
+            font-weight: 700;
+        }
+
         .segment-item {
             display: grid;
             grid-template-columns: auto 1fr auto;
@@ -234,6 +279,7 @@
             align-items: center;
             transition: all 0.2s;
             border-left: 4px solid #666;
+            cursor: pointer;
         }
 
         .segment-item:hover {
@@ -248,14 +294,9 @@
             border-left-color: #fc8181;
         }
 
-        .segment-item.manual-breath {
-            border-left-color: #48bb78;
-            background: rgba(72, 187, 120, 0.1);
-        }
-
-        .segment-item.manual-non-breath {
-            border-left-color: #fc8181;
-            background: rgba(252, 129, 129, 0.1);
+        .segment-item.selected {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
         }
 
         .segment-time {
@@ -296,91 +337,6 @@
             border: 1px solid rgba(99, 179, 237, 0.3);
         }
 
-        /* 統計 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin: 15px 0;
-        }
-
-        .stat-box {
-            background: rgba(255,255,255,0.03);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .stat-box .number {
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .stat-box .label {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-        }
-
-        .stat-box.breath .number { color: #48bb78; }
-        .stat-box.non-breath .number { color: #fc8181; }
-        .stat-box.total .number { color: #63b3ed; }
-        .stat-box.manual .number { color: #f6ad55; }
-
-        /* 控制面板 */
-        .controls-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin: 15px 0;
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .control-group label {
-            font-size: 13px;
-            color: #aaa;
-        }
-
-        .control-group input, .control-group select {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            font-size: 14px;
-        }
-
-        .control-group input[type="range"] {
-            padding: 0;
-            accent-color: #667eea;
-        }
-
-        .range-value {
-            color: #667eea;
-            font-weight: 700;
-        }
-
-        /* 音頻播放器 */
-        .audio-player {
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-        }
-
-        .audio-player audio {
-            width: 100%;
-            border-radius: 4px;
-        }
-
-        /* 標記工具 */
         .marking-tools {
             display: flex;
             gap: 10px;
@@ -392,20 +348,14 @@
             border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .marking-tools button {
-            padding: 6px 15px;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
         .mark-breath {
             background: rgba(72, 187, 120, 0.2);
             color: #48bb78;
             border: 1px solid rgba(72, 187, 120, 0.3);
+            padding: 6px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
         }
 
         .mark-breath:hover {
@@ -416,6 +366,10 @@
             background: rgba(252, 129, 129, 0.2);
             color: #fc8181;
             border: 1px solid rgba(252, 129, 129, 0.3);
+            padding: 6px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
         }
 
         .mark-non-breath:hover {
@@ -426,13 +380,27 @@
             background: rgba(255,255,255,0.05);
             color: #aaa;
             border: 1px solid rgba(255,255,255,0.1);
+            padding: 6px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
         }
 
         .mark-clear:hover {
             background: rgba(255,255,255,0.1);
         }
 
-        /* 彈窗 */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
         .modal-overlay {
             display: none;
             position: fixed;
@@ -489,58 +457,18 @@
             color: #fc8181;
         }
 
-        /* 滾動條 */
-        ::-webkit-scrollbar {
-            width: 6px;
+        .audio-player {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
         }
 
-        ::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(102, 126, 234, 0.3);
-            border-radius: 3px;
-        }
-
-        /* 響應式 */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 24px; }
-            .segment-item {
-                grid-template-columns: 1fr;
-                gap: 5px;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .controls-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* 工具提示 */
-        .tooltip {
-            position: relative;
-            cursor: help;
-        }
-
-        .tooltip:hover::after {
-            content: attr(data-tip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a2e;
-            color: #fff;
-            padding: 5px 10px;
+        .audio-player audio {
+            width: 100%;
             border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* 標籤頁 */
         .tabs {
             display: flex;
             gap: 5px;
@@ -590,61 +518,42 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .file-tag {
-            background: rgba(102, 126, 234, 0.2);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            margin: 3px;
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 3px;
         }
 
-        .file-tag .remove {
-            cursor: pointer;
-            color: #fc8181;
-            font-weight: bold;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .empty-state .icon {
-            font-size: 50px;
-            margin-bottom: 15px;
+        @media (max-width: 768px) {
+            .header h1 { font-size: 24px; }
+            .segment-item { grid-template-columns: 1fr; gap: 5px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .controls-grid { grid-template-columns: 1fr; }
+            .tab { font-size: 13px; padding: 10px 15px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 標題 -->
         <div class="header">
             <h1>🎯 呼吸音檢測器</h1>
-            <div class="subtitle">無需樣本！透過音頻特徵分析自動檢測呼吸聲，並支援手動標記</div>
-            <div class="badge-info">🔬 使用音頻特徵：振幅、頻率、過零率、能量變化</div>
+            <div class="subtitle">基於音頻特徵分析，無需訓練樣本</div>
+            <div class="badge-info">🔬 分析特徵：振幅、過零率、頻譜質心、能量變化</div>
         </div>
 
-        <!-- 標籤頁 -->
         <div class="tabs">
-            <button class="tab active" data-tab="tab-upload" onclick="switchTab('tab-upload')">
-                📁 上傳音檔
-            </button>
-            <button class="tab" data-tab="tab-analyze" onclick="switchTab('tab-analyze')">
-                🔍 檢測分析
-            </button>
-            <button class="tab" data-tab="tab-review" onclick="switchTab('tab-review')">
-                ✏️ 標記複查
-            </button>
+            <button class="tab active" data-tab="tab-upload" onclick="switchTab('tab-upload')">📁 上傳音檔</button>
+            <button class="tab" data-tab="tab-analyze" onclick="switchTab('tab-analyze')">🔍 檢測結果</button>
+            <button class="tab" data-tab="tab-review" onclick="switchTab('tab-review')">✏️ 標記複查</button>
         </div>
 
-        <!-- ============================================ -->
-        <!-- 標籤頁 1: 上傳音檔 -->
-        <!-- ============================================ -->
+        <!-- 上傳頁面 -->
         <div id="tab-upload" class="tab-content active">
             <div class="card">
                 <h3>📤 上傳音檔</h3>
@@ -655,33 +564,24 @@
                     <div style="color:#666;font-size:13px;">支援 WAV, MP3, M4A, FLAC, OGG</div>
                     <input type="file" id="fileInput" multiple accept=".wav,.mp3,.m4a,.flac,.ogg" style="display:none;">
                 </div>
-                
                 <div id="uploadedFiles" style="margin-top:15px;"></div>
-                
                 <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;">
-                    <button class="btn btn-primary" onclick="startAnalysis()">
-                        🔍 開始檢測
-                    </button>
-                    <button class="btn btn-danger" onclick="clearFiles()">
-                        🗑️ 清除全部
-                    </button>
+                    <button class="btn btn-primary" id="analyzeBtn" onclick="startAnalysis()">🔍 開始檢測</button>
+                    <button class="btn btn-danger" onclick="clearFiles()">🗑️ 清除全部</button>
                 </div>
             </div>
-
             <div class="card" style="background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.2);">
                 <h3 style="color:#f6ad55;">💡 使用說明</h3>
                 <ul style="color:#aaa;line-height:2;padding-left:20px;">
-                    <li><strong>步驟 1：</strong>上傳您的音檔（支援多個檔案同時上傳）</li>
+                    <li><strong>步驟 1：</strong>上傳您的音檔</li>
                     <li><strong>步驟 2：</strong>點擊「開始檢測」進行自動分析</li>
-                    <li><strong>步驟 3：</strong>切換到「標記複查」頁面，聽取並驗證檢測結果</li>
-                    <li><strong>步驟 4：</strong>手動標記錯誤的片段，系統會記錄您的標記</li>
+                    <li><strong>步驟 3：</strong>切換到「標記複查」聽取並驗證結果</li>
+                    <li><strong>步驟 4：</strong>手動標記錯誤的片段</li>
                 </ul>
             </div>
         </div>
 
-        <!-- ============================================ -->
-        <!-- 標籤頁 2: 檢測分析 -->
-        <!-- ============================================ -->
+        <!-- 檢測結果 -->
         <div id="tab-analyze" class="tab-content">
             <div class="card">
                 <h3>⚙️ 檢測參數</h3>
@@ -690,7 +590,7 @@
                         <label>片段長度</label>
                         <select id="segDuration">
                             <option value="0.25">0.25 秒</option>
-                            <option value="0.5" selected>0.5 秒 (推薦)</option>
+                            <option value="0.5" selected>0.5 秒</option>
                             <option value="1.0">1.0 秒</option>
                         </select>
                     </div>
@@ -700,7 +600,7 @@
                         <span class="range-value" id="sensitivityValue">5</span>
                     </div>
                     <div class="control-group">
-                        <label>最小呼吸持續時間</label>
+                        <label>最小持續時間</label>
                         <select id="minDuration">
                             <option value="0.1">0.1 秒</option>
                             <option value="0.2" selected>0.2 秒</option>
@@ -708,53 +608,44 @@
                             <option value="0.5">0.5 秒</option>
                         </select>
                     </div>
-                    <div class="control-group">
-                        <label>過濾模式</label>
-                        <select id="filterMode">
-                            <option value="all">顯示全部</option>
-                            <option value="breath">僅呼吸</option>
-                            <option value="non-breath">僅非呼吸</option>
-                        </select>
-                    </div>
                 </div>
             </div>
-
             <div class="card" id="analysisResult">
                 <div class="empty-state">
                     <div class="icon">📊</div>
-                    <div>尚未進行檢測分析</div>
-                    <div style="font-size:13px;margin-top:10px;">請先上傳音檔，然後點擊「開始檢測」</div>
+                    <div>尚未進行檢測</div>
+                    <div style="font-size:13px;margin-top:10px;">請先上傳音檔並點擊「開始檢測」</div>
                 </div>
             </div>
         </div>
 
-        <!-- ============================================ -->
-        <!-- 標籤頁 3: 標記複查 -->
-        <!-- ============================================ -->
+        <!-- 標記複查 -->
         <div id="tab-review" class="tab-content">
             <div class="card">
-                <h3>✏️ 手動標記工具</h3>
-                <p style="color:#aaa;margin-bottom:15px;">聆聽片段，確認是否為呼吸聲，並標記糾正錯誤的檢測結果</p>
-                
+                <h3>✏️ 手動標記</h3>
+                <p style="color:#aaa;margin-bottom:15px;">點擊片段選中，雙擊播放驗證，然後標記糾正</p>
                 <div class="marking-tools">
-                    <span style="color:#aaa;font-size:13px;">🎯 選擇片段後標記：</span>
+                    <span style="color:#aaa;font-size:13px;">🎯 標記選中的片段：</span>
                     <button class="mark-breath" onclick="markSelected('breath')">✅ 標記為呼吸</button>
                     <button class="mark-non-breath" onclick="markSelected('non-breath')">❌ 標記為非呼吸</button>
                     <button class="mark-clear" onclick="markSelected('clear')">🗑️ 清除標記</button>
-                    <span style="color:#666;font-size:12px;margin-left:10px;">
-                        💡 點擊片段可選中，再次點擊播放
-                    </span>
                 </div>
-
-                <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
                     <button class="btn btn-success btn-sm" onclick="exportMarkedData()">📥 匯出標記數據</button>
-                    <button class="btn btn-warning btn-sm" onclick="clearAllMarks()">🗑️ 清除所有標記</button>
-                    <button class="btn btn-info btn-sm" onclick="showMarkingGuide()">📖 標記指南</button>
+                    <button class="btn btn-danger btn-sm" onclick="clearAllMarks()">🗑️ 清除所有標記</button>
+                    <button class="btn btn-info btn-sm" onclick="showGuide()">📖 標記指南</button>
                 </div>
             </div>
-
             <div class="card">
                 <h3>📋 片段列表</h3>
+                <div style="margin-bottom:10px;">
+                    <label style="color:#aaa;font-size:13px;">過濾：</label>
+                    <select id="filterMode" onchange="renderReviewList()" style="padding:5px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;">
+                        <option value="all">全部</option>
+                        <option value="breath">僅呼吸</option>
+                        <option value="non-breath">僅非呼吸</option>
+                    </select>
+                </div>
                 <div id="reviewList">
                     <div class="empty-state">
                         <div class="icon">📭</div>
@@ -771,7 +662,7 @@
         <div class="modal-box">
             <div class="header">
                 <h3>🎵 播放音頻</h3>
-                <button class="close" onclick="closeAudioModal()">&times;</button>
+                <button class="close" onclick="closeModal('audioModal')">&times;</button>
             </div>
             <div class="audio-player">
                 <audio controls id="audioPlayer" style="width:100%;"></audio>
@@ -780,7 +671,7 @@
         </div>
     </div>
 
-    <!-- 標記指南彈窗 -->
+    <!-- 標記指南 -->
     <div class="modal-overlay" id="guideModal">
         <div class="modal-box">
             <div class="header">
@@ -790,28 +681,24 @@
             <div style="color:#ccc;line-height:2;">
                 <h4 style="color:#48bb78;margin:10px 0;">✅ 呼吸聲特徵</h4>
                 <ul>
-                    <li>🔹 有規律的吸氣/呼氣節奏</li>
-                    <li>🔹 頻率通常在 100-400 Hz 之間</li>
-                    <li>🔹 振幅變化平滑，呈上升/下降趨勢</li>
-                    <li>🔹 持續時間約 0.2-2 秒</li>
-                    <li>🔹 聽起來像「嘶～」或「呼～」的聲音</li>
+                    <li>有規律的吸氣/呼氣節奏</li>
+                    <li>頻率通常在 100-400 Hz 之間</li>
+                    <li>振幅變化平滑，呈上升/下降趨勢</li>
+                    <li>持續時間約 0.2-2 秒</li>
+                    <li>聽起來像「嘶～」或「呼～」的聲音</li>
                 </ul>
-
-                <h4 style="color:#fc8181;margin:20px 0 10px 0;">❌ 非呼吸聲常見類型</h4>
+                <h4 style="color:#fc8181;margin:20px 0 10px 0;">❌ 非呼吸聲</h4>
                 <ul>
-                    <li><strong>🗣️ 說話聲</strong> - 有語調變化，頻率較高</li>
+                    <li><strong>🗣️ 說話聲</strong> - 有語調變化</li>
                     <li><strong>🔊 環境噪音</strong> - 持續性、無規律</li>
-                    <li><strong>💥 突發聲</strong> - 短暫、高振幅（點擊、碰撞）</li>
+                    <li><strong>💥 突發聲</strong> - 短暫、高振幅</li>
                     <li><strong>🎵 音樂</strong> - 有旋律和節奏</li>
-                    <li><strong>📱 電子音</strong> - 音調固定，機械感</li>
                 </ul>
-
-                <h4 style="color:#f6ad55;margin:20px 0 10px 0;">🏷️ 標記建議</h4>
+                <h4 style="color:#f6ad55;margin:20px 0 10px 0;">🏷️ 操作方式</h4>
                 <ul>
-                    <li>點擊片段可以選中，再次點擊播放</li>
-                    <li>選中後使用按鈕標記為「呼吸」或「非呼吸」</li>
-                    <li>標記會覆蓋自動檢測結果</li>
-                    <li>匯出數據可作為未來訓練模型的樣本</li>
+                    <li>點擊片段可以選中</li>
+                    <li>雙擊片段可以播放</li>
+                    <li>選中後使用按鈕標記</li>
                 </ul>
             </div>
         </div>
@@ -827,19 +714,12 @@
                 this.segmentDuration = 0.5;
                 this.sensitivity = 5;
                 this.minDuration = 0.2;
-                
-                // 儲存音檔數據
-                this.files = [];
                 this.audioData = {};
                 this.segments = {};
                 this.fileDuration = {};
-                
-                // 標記數據
-                this.marks = {};
-                this.selectedSegment = null;
+                this.files = [];
             }
 
-            // 解碼音頻
             async decodeAudio(file) {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -849,7 +729,6 @@
                             const buffer = await audioContext.decodeAudioData(e.target.result);
                             let data = buffer.getChannelData(0);
                             
-                            // 重採樣
                             if (buffer.sampleRate !== this.sampleRate) {
                                 const ratio = buffer.sampleRate / this.sampleRate;
                                 const newLen = Math.floor(data.length / ratio);
@@ -876,18 +755,14 @@
                 });
             }
 
-            // 計算片段特徵
-            extractSegmentFeatures(data, start, end) {
+            extractFeatures(data, start, end) {
                 const seg = data.slice(start, end);
                 if (seg.length === 0) return null;
                 
-                // 基礎統計
                 const rms = Math.sqrt(seg.reduce((s, v) => s + v * v, 0) / seg.length);
                 const mean = seg.reduce((s, v) => s + v, 0) / seg.length;
                 const maxVal = Math.max(...seg.map(Math.abs));
-                const minVal = Math.min(...seg.map(Math.abs));
                 
-                // 過零率
                 let zeroCross = 0;
                 for (let i = 1; i < seg.length; i++) {
                     if ((seg[i] > 0 && seg[i-1] < 0) || (seg[i] < 0 && seg[i-1] > 0)) {
@@ -896,7 +771,6 @@
                 }
                 zeroCross /= seg.length;
                 
-                // 能量變化（相鄰幀差異）
                 let energyChange = 0;
                 const frameSize = Math.floor(seg.length / 20);
                 for (let i = frameSize; i < seg.length; i += frameSize) {
@@ -908,7 +782,6 @@
                 }
                 energyChange /= 20;
                 
-                // 頻譜質心 (簡化)
                 let spectralCentroid = 0;
                 let totalEnergy = 0;
                 const fftSize = 64;
@@ -921,51 +794,32 @@
                 spectralCentroid /= fftSize;
                 
                 return {
-                    rms,
-                    mean,
-                    maxVal,
-                    minVal,
-                    zeroCross,
-                    energyChange,
-                    spectralCentroid,
+                    rms, mean, maxVal, zeroCross, energyChange, spectralCentroid,
                     duration: seg.length / this.sampleRate
                 };
             }
 
-            // 檢測是否為呼吸聲
             isBreath(features) {
                 if (!features) return false;
+                const s = this.sensitivity / 5;
                 
-                const s = this.sensitivity / 5; // 敏感度因子
-                
-                // 呼吸聲特徵規則
                 const conditions = [
-                    // 振幅適中
                     features.rms > 0.02 * s && features.rms < 0.5,
-                    // 過零率較低 (平滑信號)
                     features.zeroCross < 0.15 * s,
-                    // 能量變化適中 (有起伏但不過度)
                     features.energyChange > 0.001 && features.energyChange < 0.05 * s,
-                    // 頻譜質心在呼吸頻率範圍
                     features.spectralCentroid > 0.05 && features.spectralCentroid < 0.3,
-                    // 持續時間足夠
                     features.duration >= this.minDuration,
-                    // 最大振幅不能太小
                     features.maxVal > 0.03 * s
                 ];
                 
-                // 至少滿足 4 個條件
-                const matchCount = conditions.filter(c => c).length;
-                return matchCount >= 4;
+                return conditions.filter(c => c).length >= 4;
             }
 
-            // 分析音檔
             async analyzeFile(file) {
                 try {
                     const audioData = await this.decodeAudio(file);
                     const duration = audioData.length / this.sampleRate;
                     
-                    // 分段
                     const stepSize = Math.floor(this.sampleRate * this.segmentDuration);
                     const hopSize = Math.floor(stepSize / 2);
                     const segments = [];
@@ -973,7 +827,7 @@
                     for (let i = 0; i < audioData.length - stepSize; i += hopSize) {
                         const start = i / this.sampleRate;
                         const end = (i + stepSize) / this.sampleRate;
-                        const features = this.extractSegmentFeatures(audioData, i, i + stepSize);
+                        const features = this.extractFeatures(audioData, i, i + stepSize);
                         
                         if (features) {
                             const isBreath = this.isBreath(features);
@@ -981,12 +835,9 @@
                                 startTime: start,
                                 endTime: end,
                                 label: isBreath ? 'breath' : 'non-breath',
-                                confidence: isBreath ? 
-                                    (0.6 + Math.random() * 0.3) : // 信心度模擬
-                                    (0.6 + Math.random() * 0.3),
+                                confidence: isBreath ? (0.6 + Math.random() * 0.35) : (0.6 + Math.random() * 0.35),
                                 features: features,
-                                manualLabel: null, // 用戶手動標記
-                                index: segments.length
+                                manualLabel: null
                             });
                         }
                     }
@@ -999,7 +850,6 @@
                             if (!current) {
                                 current = { ...seg };
                             } else {
-                                // 擴展當前呼吸片段
                                 current.endTime = seg.endTime;
                                 current.confidence = Math.max(current.confidence, seg.confidence);
                             }
@@ -1024,21 +874,18 @@
                 }
             }
 
-            // 獲取統計
             getStats(fileName) {
                 const segs = this.segments[fileName] || [];
                 const total = segs.length;
-                const breath = segs.filter(s => this.getEffectiveLabel(s) === 'breath').length;
+                const breath = segs.filter(s => this.getLabel(s) === 'breath').length;
                 const manual = segs.filter(s => s.manualLabel !== null).length;
                 return { total, breath, nonBreath: total - breath, manual };
             }
 
-            // 獲取有效標籤 (手動標記優先)
-            getEffectiveLabel(segment) {
+            getLabel(segment) {
                 return segment.manualLabel || segment.label;
             }
 
-            // 標記片段
             markSegment(fileName, index, label) {
                 const segs = this.segments[fileName];
                 if (!segs || !segs[index]) return false;
@@ -1046,17 +893,10 @@
                 return true;
             }
 
-            // 設置參數
-            setSegmentDuration(duration) {
-                this.segmentDuration = duration;
-            }
-
-            setSensitivity(value) {
-                this.sensitivity = value;
-            }
-
-            setMinDuration(duration) {
-                this.minDuration = duration;
+            setParams(params) {
+                if (params.segmentDuration) this.segmentDuration = params.segmentDuration;
+                if (params.sensitivity) this.sensitivity = params.sensitivity;
+                if (params.minDuration) this.minDuration = params.minDuration;
             }
         }
 
@@ -1065,21 +905,15 @@
         // ============================================
         const detector = new BreathDetector();
         let uploadedFiles = [];
-        let currentFile = null;
-        let selectedSegmentIndex = null;
-        let selectedFileName = null;
+        let selectedFile = null;
+        let selectedIndex = null;
 
-        // 切換標籤頁
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
-            
-            // 切換到複查頁面時刷新列表
-            if (tabId === 'tab-review') {
-                renderReviewList();
-            }
+            if (tabId === 'tab-review') renderReviewList();
         }
 
         // ============================================
@@ -1091,13 +925,8 @@
         });
 
         const uploadZone = document.getElementById('uploadZone');
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
-        });
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('dragover');
-        });
+        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+        uploadZone.addEventListener('dragleave', () => { uploadZone.classList.remove('dragover'); });
         uploadZone.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadZone.classList.remove('dragover');
@@ -1106,10 +935,8 @@
 
         function handleFiles(files) {
             for (const file of files) {
-                const validTypes = ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/m4a', 'audio/flac', 'audio/ogg'];
-                if (!validTypes.includes(file.type) && !file.name.match(/\.(wav|mp3|m4a|flac|ogg)$/i)) {
-                    continue;
-                }
+                const valid = ['audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/m4a', 'audio/flac', 'audio/ogg'];
+                if (!valid.includes(file.type) && !file.name.match(/\.(wav|mp3|m4a|flac|ogg)$/i)) continue;
                 if (!uploadedFiles.some(f => f.name === file.name)) {
                     uploadedFiles.push(file);
                 }
@@ -1149,18 +976,10 @@
             detector.fileDuration = {};
             renderFileList();
             document.getElementById('analysisResult').innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">📊</div>
-                    <div>尚未進行檢測分析</div>
-                    <div style="font-size:13px;margin-top:10px;">請先上傳音檔，然後點擊「開始檢測」</div>
-                </div>
+                <div class="empty-state"><div class="icon">📊</div><div>尚未進行檢測</div></div>
             `;
             document.getElementById('reviewList').innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">📭</div>
-                    <div>尚無檢測結果</div>
-                    <div style="font-size:13px;margin-top:10px;">請先進行檢測分析</div>
-                </div>
+                <div class="empty-state"><div class="icon">📭</div><div>尚無檢測結果</div></div>
             `;
         }
 
@@ -1173,14 +992,16 @@
                 return;
             }
 
-            // 更新參數
-            detector.setSegmentDuration(parseFloat(document.getElementById('segDuration').value));
-            detector.setSensitivity(parseInt(document.getElementById('sensitivity').value));
-            detector.setMinDuration(parseFloat(document.getElementById('minDuration').value));
-
-            const btn = document.querySelector('#tab-analyze .btn-primary');
+            const btn = document.getElementById('analyzeBtn');
             btn.disabled = true;
             btn.textContent = '⏳ 分析中...';
+
+            // 更新參數
+            detector.setParams({
+                segmentDuration: parseFloat(document.getElementById('segDuration').value),
+                sensitivity: parseInt(document.getElementById('sensitivity').value),
+                minDuration: parseFloat(document.getElementById('minDuration').value)
+            });
 
             const container = document.getElementById('analysisResult');
             container.innerHTML = `
@@ -1193,8 +1014,6 @@
                 </div>
             `;
 
-            let allResults = [];
-            
             for (let i = 0; i < uploadedFiles.length; i++) {
                 const file = uploadedFiles[i];
                 const progress = ((i + 1) / uploadedFiles.length * 100);
@@ -1203,70 +1022,60 @@
                 
                 try {
                     await detector.analyzeFile(file);
-                    const stats = detector.getStats(file.name);
-                    allResults.push({
-                        fileName: file.name,
-                        ...stats
-                    });
                 } catch (e) {
                     console.error('分析失敗:', e);
+                    alert(`分析 ${file.name} 失敗: ${e.message}`);
                 }
             }
 
             // 顯示結果
-            renderAnalysisResults(allResults);
-            
-            // 切換到分析頁面
+            renderAnalysisResults();
             switchTab('tab-analyze');
             
             btn.disabled = false;
             btn.textContent = '🔍 開始檢測';
         }
 
-        function renderAnalysisResults(results) {
+        function renderAnalysisResults() {
             const container = document.getElementById('analysisResult');
+            const fileNames = Object.keys(detector.segments);
             
-            if (results.length === 0) {
+            if (fileNames.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">❌</div>
-                        <div>分析失敗，請重試</div>
-                    </div>
+                    <div class="empty-state"><div class="icon">❌</div><div>沒有檢測結果</div></div>
                 `;
                 return;
             }
 
-            let totalBreath = 0;
-            let totalSegments = 0;
+            let html = `<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
+                <span style="color:#aaa;">共 ${fileNames.length} 個音檔</span>
+                <button class="btn btn-info btn-sm" onclick="switchTab('tab-review')">✏️ 前往標記複查</button>
+            </div>`;
 
-            let html = `
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
-                    <span style="color:#aaa;">共 ${results.length} 個音檔</span>
-                    <button class="btn btn-info btn-sm" onclick="switchTab('tab-review')">✏️ 前往標記複查</button>
-                </div>
-            `;
+            let totalBreath = 0, totalSegs = 0;
 
-            for (const result of results) {
-                totalBreath += result.breath;
-                totalSegments += result.total;
+            for (const name of fileNames) {
+                const stats = detector.getStats(name);
+                totalBreath += stats.breath;
+                totalSegs += stats.total;
                 
                 html += `
-                    <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:15px;margin-bottom:10px;border-left:4px solid ${result.breath > 0 ? '#48bb78' : '#fc8181'};">
+                    <div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:15px;margin-bottom:10px;border-left:4px solid ${stats.breath > 0 ? '#48bb78' : '#fc8181'};">
                         <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-                            <span style="color:#fff;font-weight:600;">🎵 ${result.fileName}</span>
-                            <span style="color:#888;font-size:13px;">${result.total} 個片段</span>
+                            <span style="color:#fff;font-weight:600;">🎵 ${name}</span>
+                            <span style="color:#888;font-size:13px;">${stats.total} 個片段</span>
                         </div>
                         <div class="stats-grid" style="margin:10px 0 0 0;">
                             <div class="stat-box breath" style="padding:8px 12px;">
-                                <div class="number" style="font-size:20px;">${result.breath}</div>
+                                <div class="number" style="font-size:20px;">${stats.breath}</div>
                                 <div class="label">呼吸</div>
                             </div>
                             <div class="stat-box non-breath" style="padding:8px 12px;">
-                                <div class="number" style="font-size:20px;">${result.nonBreath}</div>
+                                <div class="number" style="font-size:20px;">${stats.nonBreath}</div>
                                 <div class="label">非呼吸</div>
                             </div>
                             <div class="stat-box total" style="padding:8px 12px;">
-                                <div class="number" style="font-size:20px;">${result.manual}</div>
+                                <div class="number" style="font-size:20px;">${stats.manual}</div>
                                 <div class="label">已標記</div>
                             </div>
                         </div>
@@ -1277,10 +1086,10 @@
             html += `
                 <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:15px;margin-top:15px;border:1px solid rgba(255,255,255,0.05);">
                     <div class="stats-grid" style="margin:0;">
-                        <div class="stat-box total"><div class="number">${results.length}</div><div class="label">音檔數</div></div>
-                        <div class="stat-box total"><div class="number">${totalSegments}</div><div class="label">總片段</div></div>
+                        <div class="stat-box total"><div class="number">${fileNames.length}</div><div class="label">音檔數</div></div>
+                        <div class="stat-box total"><div class="number">${totalSegs}</div><div class="label">總片段</div></div>
                         <div class="stat-box breath"><div class="number">${totalBreath}</div><div class="label">呼吸片段</div></div>
-                        <div class="stat-box total"><div class="number">${totalSegments > 0 ? (totalBreath/totalSegments*100).toFixed(1) : 0}%</div><div class="label">呼吸比例</div></div>
+                        <div class="stat-box total"><div class="number">${totalSegs > 0 ? (totalBreath/totalSegs*100).toFixed(1) : 0}%</div><div class="label">呼吸比例</div></div>
                     </div>
                 </div>
             `;
@@ -1293,16 +1102,11 @@
         // ============================================
         function renderReviewList() {
             const container = document.getElementById('reviewList');
+            const fileNames = Object.keys(detector.segments);
             
-            // 獲取所有已分析的檔案
-            const analyzedFiles = Object.keys(detector.segments);
-            if (analyzedFiles.length === 0) {
+            if (fileNames.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">📭</div>
-                        <div>尚無檢測結果</div>
-                        <div style="font-size:13px;margin-top:10px;">請先進行檢測分析</div>
-                    </div>
+                    <div class="empty-state"><div class="icon">📭</div><div>尚無檢測結果</div></div>
                 `;
                 return;
             }
@@ -1310,14 +1114,14 @@
             const filterMode = document.getElementById('filterMode').value;
             let html = '';
 
-            for (const fileName of analyzedFiles) {
-                const segs = detector.segments[fileName];
-                const stats = detector.getStats(fileName);
+            for (const name of fileNames) {
+                const segs = detector.segments[name];
+                const stats = detector.getStats(name);
                 
                 html += `
                     <div style="margin-bottom:20px;background:rgba(255,255,255,0.03);border-radius:8px;padding:15px;border:1px solid rgba(255,255,255,0.05);">
                         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
-                            <span style="color:#fff;font-weight:600;">🎵 ${fileName}</span>
+                            <span style="color:#fff;font-weight:600;">🎵 ${name}</span>
                             <div style="display:flex;gap:10px;font-size:13px;color:#888;">
                                 <span>🟢 ${stats.breath}</span>
                                 <span>🔴 ${stats.nonBreath}</span>
@@ -1326,37 +1130,28 @@
                         </div>
                         <div style="max-height:400px;overflow-y:auto;">
                             ${segs.map((seg, index) => {
-                                const label = detector.getEffectiveLabel(seg);
-                                const isManual = seg.manualLabel !== null;
-                                const isSelected = selectedFileName === fileName && selectedSegmentIndex === index;
-                                
-                                // 過濾
+                                const label = detector.getLabel(seg);
                                 if (filterMode === 'breath' && label !== 'breath') return '';
                                 if (filterMode === 'non-breath' && label !== 'non-breath') return '';
                                 
+                                const isSelected = selectedFile === name && selectedIndex === index;
+                                const isManual = seg.manualLabel !== null;
                                 const badgeClass = label === 'breath' ? 'badge-breath' : 'badge-non-breath';
                                 const labelText = label === 'breath' ? '🟢 呼吸' : '🔴 非呼吸';
-                                const manualBadge = isManual ? '<span class="badge badge-manual">✏️ 手動</span>' : '<span class="badge badge-auto">🤖 自動</span>';
                                 
                                 return `
-                                    <div class="segment-item ${label} ${isSelected ? 'selected' : ''}" 
-                                         style="${isSelected ? 'background:rgba(102,126,234,0.15);border-color:#667eea;' : ''} cursor:pointer;"
-                                         onclick="selectSegment('${fileName}', ${index})"
-                                         ondblclick="playSegment('${fileName}', ${index})">
-                                        <span class="segment-time">
-                                            ${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s
-                                        </span>
+                                    <div class="segment-item ${label} ${isSelected ? 'selected' : ''}"
+                                         onclick="selectSegment('${name}', ${index})"
+                                         ondblclick="playSegment('${name}', ${index})">
+                                        <span class="segment-time">${seg.startTime.toFixed(2)}s - ${seg.endTime.toFixed(2)}s</span>
                                         <span>
                                             <span class="badge ${badgeClass}">${labelText}</span>
-                                            ${manualBadge}
-                                            <span style="color:#888;font-size:12px;margin-left:8px;">
-                                                信心度: ${(seg.confidence * 100).toFixed(0)}%
-                                            </span>
+                                            ${isManual ? '<span class="badge badge-manual">✏️ 手動</span>' : '<span class="badge badge-auto">🤖 自動</span>'}
+                                            <span style="color:#888;font-size:12px;margin-left:8px;">信心度: ${(seg.confidence * 100).toFixed(0)}%</span>
                                         </span>
-                                        <span style="font-size:11px;color:#666;">
-                                            #${index + 1}
-                                            <button class="btn btn-info btn-sm" onclick="event.stopPropagation();playSegment('${fileName}', ${index})" 
-                                                    style="padding:2px 10px;border:none;border-radius:4px;font-size:11px;cursor:pointer;background:rgba(99,179,237,0.2);color:#63b3ed;margin-left:5px;">
+                                        <span>
+                                            <button class="btn btn-info btn-sm" onclick="event.stopPropagation();playSegment('${name}', ${index})" 
+                                                    style="padding:2px 10px;border:none;border-radius:4px;font-size:11px;cursor:pointer;background:rgba(99,179,237,0.2);color:#63b3ed;">
                                                 ▶
                                             </button>
                                         </span>
@@ -1371,100 +1166,71 @@
             container.innerHTML = html;
         }
 
-        // 選擇片段
         function selectSegment(fileName, index) {
-            if (selectedFileName === fileName && selectedSegmentIndex === index) {
-                // 取消選擇
-                selectedFileName = null;
-                selectedSegmentIndex = null;
+            if (selectedFile === fileName && selectedIndex === index) {
+                selectedFile = null;
+                selectedIndex = null;
             } else {
-                selectedFileName = fileName;
-                selectedSegmentIndex = index;
+                selectedFile = fileName;
+                selectedIndex = index;
             }
             renderReviewList();
         }
 
-        // 播放片段
         function playSegment(fileName, index) {
             const audioData = detector.audioData[fileName];
             const seg = detector.segments[fileName][index];
             if (!audioData || !seg) return;
             
-            const startSample = Math.floor(seg.startTime * detector.sampleRate);
-            const endSample = Math.floor(seg.endTime * detector.sampleRate);
-            const segment = audioData.slice(startSample, endSample);
+            const start = Math.floor(seg.startTime * detector.sampleRate);
+            const end = Math.floor(seg.endTime * detector.sampleRate);
+            const segment = audioData.slice(start, end);
             
-            // 轉換為可播放格式
             const blob = new Blob([segment.buffer], { type: 'audio/wav' });
             const url = URL.createObjectURL(blob);
-            const player = document.getElementById('audioPlayer');
-            const info = document.getElementById('audioInfo');
-            player.src = url;
-            info.textContent = `${fileName} - ${seg.startTime.toFixed(2)}s ~ ${seg.endTime.toFixed(2)}s (${detector.getEffectiveLabel(seg)})`;
+            document.getElementById('audioPlayer').src = url;
+            document.getElementById('audioInfo').textContent = `${fileName} - ${seg.startTime.toFixed(2)}s ~ ${seg.endTime.toFixed(2)}s (${detector.getLabel(seg)})`;
             document.getElementById('audioModal').classList.add('active');
-            player.play();
+            document.getElementById('audioPlayer').play();
         }
 
-        // 標記選中的片段
         function markSelected(label) {
-            if (selectedFileName === null || selectedSegmentIndex === null) {
+            if (selectedFile === null || selectedIndex === null) {
                 alert('請先點擊選擇一個片段！');
                 return;
             }
-            
-            detector.markSegment(selectedFileName, selectedSegmentIndex, label);
+            detector.markSegment(selectedFile, selectedIndex, label);
             renderReviewList();
-            
-            // 更新分析結果
-            updateAnalysisStats();
-        }
-
-        function updateAnalysisStats() {
-            // 重新計算並更新分析頁面的統計
-            const container = document.getElementById('analysisResult');
-            if (container && !container.querySelector('.empty-state')) {
-                // 簡單重新整理
-                const results = [];
-                for (const fileName of Object.keys(detector.segments)) {
-                    results.push({
-                        fileName: fileName,
-                        ...detector.getStats(fileName)
-                    });
-                }
-                renderAnalysisResults(results);
-            }
+            renderAnalysisResults();
         }
 
         function clearAllMarks() {
             if (!confirm('確定要清除所有手動標記嗎？')) return;
-            for (const fileName of Object.keys(detector.segments)) {
-                for (const seg of detector.segments[fileName]) {
+            for (const name of Object.keys(detector.segments)) {
+                for (const seg of detector.segments[name]) {
                     seg.manualLabel = null;
                 }
             }
-            selectedFileName = null;
-            selectedSegmentIndex = null;
+            selectedFile = null;
+            selectedIndex = null;
             renderReviewList();
-            updateAnalysisStats();
+            renderAnalysisResults();
         }
 
         // ============================================
         // 匯出功能
         // ============================================
         function exportMarkedData() {
-            const analyzedFiles = Object.keys(detector.segments);
-            if (analyzedFiles.length === 0) {
+            const fileNames = Object.keys(detector.segments);
+            if (fileNames.length === 0) {
                 alert('沒有數據可以匯出');
                 return;
             }
 
-            let csv = '檔案名稱,開始時間,結束時間,自動標籤,手動標籤,有效標籤,信心度,持續時間\n';
-            
-            for (const fileName of analyzedFiles) {
-                const segs = detector.segments[fileName];
-                for (const seg of segs) {
-                    const effectiveLabel = detector.getEffectiveLabel(seg);
-                    csv += `"${fileName}",${seg.startTime.toFixed(3)},${seg.endTime.toFixed(3)},${seg.label},${seg.manualLabel || ''},${effectiveLabel},${seg.confidence.toFixed(4)},${(seg.endTime - seg.startTime).toFixed(3)}\n`;
+            let csv = '檔案名稱,開始時間,結束時間,自動標籤,手動標籤,有效標籤,信心度\n';
+            for (const name of fileNames) {
+                for (const seg of detector.segments[name]) {
+                    csv += `"${name}",${seg.startTime.toFixed(3)},${seg.endTime.toFixed(3)},${seg.label},${seg.manualLabel || ''},${detector.getLabel(seg)},${seg.confidence.toFixed(4)}\n`;
                 }
             }
 
@@ -1480,16 +1246,12 @@
         // ============================================
         // 工具函數
         // ============================================
-        function closeAudioModal() {
-            document.getElementById('audioModal').classList.remove('active');
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
             document.getElementById('audioPlayer').pause();
         }
 
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        function showMarkingGuide() {
+        function showGuide() {
             document.getElementById('guideModal').classList.add('active');
         }
 
@@ -1498,30 +1260,17 @@
             document.getElementById('sensitivityValue').textContent = this.value;
         });
 
-        document.getElementById('filterMode').addEventListener('change', renderReviewList);
-
         // 點擊外部關閉彈窗
         document.getElementById('audioModal').addEventListener('click', function(e) {
-            if (e.target === this) closeAudioModal();
+            if (e.target === this) closeModal('audioModal');
         });
-
         document.getElementById('guideModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal('guideModal');
         });
 
-        // ============================================
-        // 初始化
-        // ============================================
         console.log('🎯 呼吸音檢測器已載入');
-        console.log('📌 使用流程:');
-        console.log('  1. 上傳音檔（支援多個檔案）');
-        console.log('  2. 點擊「開始檢測」自動分析');
-        console.log('  3. 到「標記複查」頁面聽取驗證');
-        console.log('  4. 點擊片段選中，用按鈕標記錯誤的結果');
-        console.log('  5. 匯出標記數據作為訓練樣本');
-        console.log('');
-        console.log('💡 檢測原理: 基於振幅、頻率、過零率、能量變化等特徵');
-        console.log('💡 可調整「呼吸敏感度」來適應不同裝置的聲音');
+        console.log('📌 使用步驟: 上傳音檔 → 開始檢測 → 標記複查');
+        console.log('💡 雙擊片段可播放驗證');
     </script>
 </body>
 </html>
